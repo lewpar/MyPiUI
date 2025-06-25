@@ -5,7 +5,7 @@ A primitive Kiosk UI framework for the Raspberry Pi using the Linux Frame Buffer
 Supports both 16bit and 32bit colors.
 
 ## Usage
-Example repository coming soon..
+Example repository and NuGet package coming soon..
 
 ## Dependencies
 - `fbset` - Used to get the frame buffer information (size, color depth, etc..)
