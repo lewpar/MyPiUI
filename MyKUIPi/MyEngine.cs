@@ -5,6 +5,7 @@ using MyKUIPi.Drawing;
 using MyKUIPi.Input;
 using MyKUIPi.Primitives;
 using MyKUIPi.Scene;
+using MyKUIPi.UI.Controls;
 
 namespace MyKUIPi;
 
@@ -235,6 +236,23 @@ public class MyEngine : IDisposable
         _frameBuffer.FillRect((int)x, (int)y, 10, 10, isTouching ? Color.Red : Color.Gray);
     }
 
+    private void RenderDebugUI(UIElement element)
+    {
+        if (_frameBuffer is null)
+        {
+            return;
+        }
+
+        var fontSize = 8;
+        _frameBuffer.DrawRect(element.X, element.Y, element.Width, element.Height, 1, Color.Red);
+        _frameBuffer.DrawText(element.X, element.Y - fontSize - 1, element.GetType().Name, Color.White, fontSize);
+        
+        foreach (var child in element.Children)
+        {
+            RenderDebugUI(child);
+        }
+    }
+
     public void Update()
     {
         if (_frameBuffer is null)
@@ -277,6 +295,11 @@ public class MyEngine : IDisposable
         {
             SceneManager.CurrentScene.UIFrame.Update(_deltaTimeMs);
             SceneManager.CurrentScene.UIFrame.Draw(_frameBuffer);
+
+            if (_myOptions.ShowDebugUI)
+            {
+                RenderDebugUI(SceneManager.CurrentScene.UIFrame);
+            }
         }
 
         // UI: update and draw

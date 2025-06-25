@@ -18,6 +18,7 @@ class Program
             
             HideConsoleCaret = true,
             ShowMetrics = true,
+            ShowDebugUI = true,
         });
         
         engine.Initialize();

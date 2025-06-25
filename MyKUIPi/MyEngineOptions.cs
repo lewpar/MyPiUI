@@ -9,5 +9,6 @@ public class MyEngineOptions
     public int MaxTouchX { get; init; } = 4096;
     public int MaxTouchY { get; init; } = 4096;
     public bool ShowMetrics { get; init; }
+    public bool ShowDebugUI { get; init; }
     public bool HideConsoleCaret { get; init; }
 }
