@@ -6,7 +6,9 @@ A primitive Kiosk UI framework for the Raspberry Pi using the Linux Frame Buffer
 - Touch screen support.
 
 ## Usage
-Example repository and NuGet package coming soon..
+To get started, check out the sample project [here](https://github.com/lewpar/MyKUIPi/tree/master/MyKUIPi.Sample).
+
+NuGet package coming soon..
 
 ## Dependencies
 - `fbset` - Used to get the frame buffer information (size, color depth, etc..)
