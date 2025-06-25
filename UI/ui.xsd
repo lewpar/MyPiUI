@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://my.kuipi.com/ui"
+           xmlns="http://my.kuipi.com/ui"
+           elementFormDefault="qualified">
+    <xs:element name="Frame">
+        <xs:complexType>
+            <xs:choice minOccurs="1" maxOccurs="1">
+                <xs:element ref="Grid" />
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="Rectangle">
+        <xs:complexType>
+            <xs:attribute name="x" type="xs:int" use="required" />
+            <xs:attribute name="y" type="xs:int" use="required" />
+            <xs:attribute name="width" type="xs:int" use="required" />
+            <xs:attribute name="height" type="xs:int" use="required" />
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="Grid">
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="50">
+                <xs:element ref="Rectangle" />
+                <xs:element ref="Button" />
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="Button">
+        <xs:complexType>
+            <xs:attribute name="handler" type="xs:string" />
+
+            <xs:attribute name="text" type="xs:string" />
+            <xs:attribute name="font-size" type="xs:int" />
+
+            <xs:attribute name="background" type="xs:string" default="#ffffff" />
+            <xs:attribute name="foreground" type="xs:string" default="#000000" />
+
+            <xs:attribute name="border-size" type="xs:int" />
+            <xs:attribute name="border-color" type="xs:string" default="#f0f0f0" />
+
+            <xs:attribute name="x" type="xs:int" use="required" />
+            <xs:attribute name="y" type="xs:int" use="required" />
+
+            <xs:attribute name="width" type="xs:int" default="0" />
+            <xs:attribute name="height" type="xs:int" default="0" />
+
+            <xs:attribute name="padding" type="xs:int" default="4" />
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

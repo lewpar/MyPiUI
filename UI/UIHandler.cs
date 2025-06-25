@@ -11,7 +11,7 @@ namespace MyKUIPi.UI;
 
 public class UIHandler
 {
-    public const string NAMESPACE = "http://rawdraw.com/ui";
+    public const string Namespace = "http://my.kuipi.com/ui";
 
     private static void SetParent(UIElement element, UIElement parent)
     {
@@ -79,13 +79,13 @@ public class UIHandler
         
         xmlSettings.ValidationType = ValidationType.Schema;
         xmlSettings.ValidationFlags |= XmlSchemaValidationFlags.ReportValidationWarnings;
-        xmlSettings.Schemas.Add(NAMESPACE, "./UI/ui.xsd");
+        xmlSettings.Schemas.Add(Namespace, "./UI/ui.xsd");
 
         xmlSettings.ValidationEventHandler += (_, args) => throw new Exception(args.Message);
         
         var xmlStream = File.OpenRead(path);
         var xmlReader = XmlReader.Create(xmlStream, xmlSettings);
-        var serializer = new XmlSerializer(typeof(FrameElement), NAMESPACE);
+        var serializer = new XmlSerializer(typeof(FrameElement), Namespace);
 
         var frame = serializer.Deserialize(xmlReader) as FrameElement;
         if (frame is null)
