@@ -2,7 +2,8 @@
 
 A primitive Kiosk UI framework for the Raspberry Pi using the Linux Frame Buffer (`/dev/fb0`) for rendering.
 
-Supports both 16bit and 32bit colors.
+- 16-bit and 32-bit color support.
+- Touch screen support.
 
 ## Usage
 Example repository and NuGet package coming soon..
