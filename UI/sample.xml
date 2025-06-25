@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Frame xmlns="http://my.kuipi.com/ui"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://my.kuipi.com/ui ui.xsd">
+
+    <Grid>
+        <Button text="Jump Button" handler="jump" font-size="16" x="10" y="100" padding="10" />
+    </Grid>
+
+</Frame>
