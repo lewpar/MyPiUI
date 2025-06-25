@@ -3,7 +3,7 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://my.kuipi.com/ui ui.xsd">
 
-    <StackPanel>
+    <StackPanel x="0" y="80" width="1920" height="1000" gap="10" padding="10">
         <Button text="Test Button 1" font-size="16" padding="10" />
         <Button text="Test Button 2" font-size="16" padding="10" />
     </StackPanel>

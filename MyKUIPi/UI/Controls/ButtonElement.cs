@@ -44,18 +44,6 @@ public class ButtonElement : UIElement
         set => Background = string.IsNullOrWhiteSpace(value) ? Color.White : Color.FromHex(value);
     }
     
-    [XmlAttribute("x")]
-    public int X { get; set; }
-    
-    [XmlAttribute("y")]
-    public int Y { get; set; }
-    
-    [XmlAttribute("width")]
-    public int Width { get; set; }
-    
-    [XmlAttribute("height")]
-    public int Height { get; set; }
-    
     [XmlAttribute("padding")]
     public int Padding { get; set; }
 
@@ -96,6 +84,12 @@ public class ButtonElement : UIElement
         Handler.Invoke();
     }
 
+    public override void Init()
+    {
+        Width = (Width > 0 ? Width : MeasureText(FontSize, Text ?? "")) + (Padding * 2);
+        Height = FontSize + (Padding * 2);
+    }
+
     public override void Update(float deltaTimeMs)
     {
         _currentTouchState = InputManager.IsTouching(Bounds);
@@ -112,26 +106,9 @@ public class ButtonElement : UIElement
 
     public override void Draw(FrameBuffer buffer)
     {
-        if (_currentTouchState)
-        {
-            buffer.FillRect(X, Y, 
-                (Width > 0 ? Width : MeasureText(FontSize, Text ?? "")) + (Padding * 2), 
-                FontSize + (Padding * 2), Color.White);
+        buffer.FillRect(X, Y, Width, Height, _currentTouchState ? Color.White : Color.Gray);
             
-            buffer.DrawRect(X, Y, 
-                (Width > 0 ? Width : MeasureText(FontSize, Text ?? "")) + (Padding * 2), 
-                FontSize + (Padding * 2), BorderSize, Color.White);
-        }
-        else
-        {
-            buffer.FillRect(X, Y, 
-                (Width > 0 ? Width : MeasureText(FontSize, Text ?? "")) + (Padding * 2), 
-                FontSize + (Padding * 2), Color.Gray);
-            
-            buffer.DrawRect(X, Y, 
-                (Width > 0 ? Width : MeasureText(FontSize, Text ?? "")) + (Padding * 2), 
-                FontSize + (Padding * 2), BorderSize, Color.Gray);   
-        }
+        buffer.DrawRect(X, Y, Width, Height, BorderSize, _currentTouchState ? Color.White : Color.Gray);
 
         if (!string.IsNullOrWhiteSpace(Text))
         {

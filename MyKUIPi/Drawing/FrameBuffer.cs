@@ -5,6 +5,8 @@ namespace MyKUIPi.Drawing;
 
 public class FrameBuffer : IDisposable
 {
+    private Rectangle? _clipRect;
+    
     private FrameBufferInfo _frameInfo;
     private MyEngineOptions _myOptions;
 
@@ -36,6 +38,16 @@ public class FrameBuffer : IDisposable
         _softwareBackBuffer = new byte[_frameInfo.Width * _frameInfo.Height * _bytesPerPixel];
     }
 
+    public void SetClip(Rectangle clipRect)
+    {
+        _clipRect = clipRect;
+    }
+
+    public void ClearClip()
+    {
+        _clipRect = null;
+    }
+
     public void Clear(Color color, Rectangle rect)
     {
         FillRectNoDirty(rect.X, rect.Y, rect.Width, rect.Height, color);
@@ -60,6 +72,11 @@ public class FrameBuffer : IDisposable
     {
         if (x < 0 || x >= _frameInfo.Width ||
             y < 0 || y >= _frameInfo.Height)
+        {
+            return;
+        }
+
+        if (_clipRect is not null && !_clipRect.Value.ContainsPoint(x, y))
         {
             return;
         }

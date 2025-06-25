@@ -68,11 +68,21 @@ public class UIHandler
         }
     }
 
-    public static FrameElement Load(MyScene scene, string path)
+    private static void InitUIElement(UIElement element)
     {
-        if (!File.Exists(path))
+        element.Init();
+
+        foreach (var child in element.Children)
         {
-            throw new FileNotFoundException($"No ui exists at path '{path}'.");
+            InitUIElement(child);
+        }
+    }
+
+    public static FrameElement Load(MyScene scene, string xmlPath)
+    {
+        if (!File.Exists(xmlPath))
+        {
+            throw new FileNotFoundException($"No UI exists at path '{xmlPath}'.");
         }
         
         var xmlSettings = new XmlReaderSettings();
@@ -83,24 +93,21 @@ public class UIHandler
 
         xmlSettings.ValidationEventHandler += (_, args) => throw new Exception(args.Message);
         
-        var xmlStream = File.OpenRead(path);
+        var xmlStream = File.OpenRead(xmlPath);
         var xmlReader = XmlReader.Create(xmlStream, xmlSettings);
         var serializer = new XmlSerializer(typeof(FrameElement), Namespace);
 
         var frame = serializer.Deserialize(xmlReader) as FrameElement;
         if (frame is null)
         {
-            throw new Exception($"Failed to deserialize frame element from path '{path}'.");
+            throw new Exception($"Failed to deserialize frame element from path '{xmlPath}'.");
         }
 
         foreach (var child in frame.Children)
         {
             SetParent(child, frame);
-        }
-
-        foreach (var child in frame.Children)
-        {
             Autowire(scene, child);
+            InitUIElement(child);
         }
 
         return frame;

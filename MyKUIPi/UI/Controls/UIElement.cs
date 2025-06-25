@@ -4,18 +4,30 @@ using MyKUIPi.Drawing;
 
 namespace MyKUIPi.UI.Controls;
 
-[XmlInclude(typeof(FrameElement))]
-[XmlInclude(typeof(RectangleElement))]
-[XmlInclude(typeof(ButtonElement))]
 public abstract class UIElement
 {
     [XmlElement("Grid", typeof(GridElement))]
     [XmlElement("Rectangle", typeof(RectangleElement))]
     [XmlElement("Button", typeof(ButtonElement))]
+    [XmlElement("StackPanel", typeof(StackPanelElement))]
     public List<UIElement> Children { get; } = new List<UIElement>();
     
     [XmlIgnore]
     public UIElement? Parent { get; set; }
+    
+    [XmlAttribute("x")]
+    public int X { get; set; }
+    
+    [XmlAttribute("y")]
+    public int Y { get; set; }
+    
+    [XmlAttribute("width")]
+    public int Width { get; set; }
+    
+    [XmlAttribute("height")]
+    public int Height { get; set; }
+    
+    public virtual void Init() { }
 
     public virtual void Draw(FrameBuffer buffer)
     {

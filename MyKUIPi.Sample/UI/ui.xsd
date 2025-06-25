@@ -10,22 +10,22 @@
             </xs:choice>
         </xs:complexType>
     </xs:element>
-    
+
     <xs:element name="StackPanel">
         <xs:complexType>
             <xs:choice minOccurs="1" maxOccurs="50">
                 <xs:element ref="Button" />
             </xs:choice>
-            
+
             <xs:attribute name="x" type="xs:int" />
             <xs:attribute name="y" type="xs:int" />
-            
+
             <xs:attribute name="width" type="xs:int" />
             <xs:attribute name="height" type="xs:int" />
-            
+
             <xs:attribute name="padding" type="xs:int" />
             <xs:attribute name="gap" type="xs:int" />
-            
+
             <xs:attribute name="orientation" type="xs:int" default="0" />
         </xs:complexType>
     </xs:element>
