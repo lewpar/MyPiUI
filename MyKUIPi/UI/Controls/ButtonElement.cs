@@ -47,27 +47,9 @@ public class ButtonElement : UIElement
     
     [XmlAttribute("padding")]
     public int Padding { get; set; }
-
-    private Rectangle? _bounds;
     
     private bool _currentTouchState;
     private bool _lastTouchState;
-
-    [XmlIgnore]
-    public Rectangle Bounds
-    {
-        get
-        {
-            if (_bounds is null)
-            {
-                _bounds = CalculateBounds();
-            }
-
-            return _bounds.Value;
-        }
-
-        private set => _bounds = value;
-    }
 
     [XmlAttribute("handler")]
     public string? HandlerName { get; set; }
@@ -89,19 +71,11 @@ public class ButtonElement : UIElement
     {
         Width = (Width > 0 ? Width : MeasureText(FontSize, Text ?? "")) + (Padding * 2);
         Height = FontSize + (Padding * 2);
-        Bounds = CalculateBounds();
-    }
-
-    private Rectangle CalculateBounds()
-    {
-        return new Rectangle(X, Y, 
-            (Width > 0 ? Width : MeasureText(FontSize, Text ?? "")) + (Padding * 2), 
-            FontSize + (Padding * 2));
     }
 
     public override void Update(float deltaTimeMs)
     {
-        _currentTouchState = InputManager.IsTouching(Bounds);
+        _currentTouchState = InputManager.IsTouching(X, Y, Width, Height);
         
         if (_lastTouchState && !_currentTouchState)
         {

@@ -6,13 +6,8 @@ namespace MyKUIPi.UI.Controls;
 
 public class StackPanelElement : UIElement
 {
-    private StackOrientation _orientation;
-
     [XmlAttribute("orientation")]
-    public int Orientation
-    {
-        set => _orientation = (StackOrientation)value;
-    }
+    public int Orientation { get; set; }
     
     [XmlAttribute("padding")]
     public int Padding { get; set; }
@@ -30,7 +25,7 @@ public class StackPanelElement : UIElement
             child.X = offsetX;
             child.Y = offsetY;
 
-            if (_orientation == StackOrientation.Vertical)
+            if (Orientation == (int)StackOrientation.Vertical)
             {
                 offsetY += child.Height + Gap;
                 child.Width = Width - Padding * 2;
@@ -47,12 +42,28 @@ public class StackPanelElement : UIElement
 
     public override void Draw(FrameBuffer buffer)
     {
+        int offsetX = X + Padding;
+        int offsetY = Y + Padding;
         var panelBounds = new Rectangle(X, Y, Width, Height);
 
         buffer.SetClip(panelBounds);
 
         foreach (var child in Children)
         {
+            child.X = offsetX;
+            child.Y = offsetY;
+
+            if (Orientation == (int)StackOrientation.Vertical)
+            {
+                offsetY += child.Height + Gap;
+                child.Width = Width - Padding * 2;
+            }
+            else
+            {
+                offsetX += child.Width + Gap;
+                child.Height = Height - Padding * 2;
+            }
+            
             child.Draw(buffer);
         }
 

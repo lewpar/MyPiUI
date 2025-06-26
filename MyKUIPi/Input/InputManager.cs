@@ -1,6 +1,3 @@
-using System.Diagnostics;
-using MyKUIPi.Primitives;
-
 namespace MyKUIPi.Input;
 
 public class InputManager : IDisposable
@@ -71,7 +68,7 @@ public class InputManager : IDisposable
         return _touchReader?.GetTouchState() ?? (0, 0, false);
     }
     
-    public static bool IsTouching(Rectangle region)
+    public static bool IsTouching(int regionX, int regionY, int regionWidth, int regionHeight)
     {
         if (Instance is null)
         {
@@ -88,8 +85,8 @@ public class InputManager : IDisposable
         var x = normalizedX * _screenWidth;
         var y = normalizedY * _screenHeight;
 
-        if (x >= region.X && x <= (region.X + region.Width) &&
-            y >= region.Y && y <= (region.Y + region.Height))
+        if (x >= regionX && x <= (regionX + regionWidth) &&
+            y >= regionY && y <= (regionY + regionHeight))
         {
             return true;
         }
