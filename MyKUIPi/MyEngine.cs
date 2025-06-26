@@ -294,16 +294,11 @@ public class MyEngine : IDisposable
         SceneManager.CurrentScene.UIFrame?.Update(_deltaTimeMs);
         SceneManager.CurrentScene.UIFrame?.Draw(_frameBuffer);
         
-        if (SceneManager.CurrentScene.UIFrame is not null)
+        if (SceneManager.CurrentScene.UIFrame is not null &&
+            _myOptions.ShowDebugUI)
         {
-            if (_myOptions.ShowDebugUI)
-            {
-                RenderDebugUI(SceneManager.CurrentScene.UIFrame);
-            }
+            RenderDebugUI(SceneManager.CurrentScene.UIFrame);
         }
-
-        // UI: update and draw
-        //var (normX, normY, isTouching) = _inputManager.GetTouchState();
 
         if (_myOptions.ShowMetrics)
         {
