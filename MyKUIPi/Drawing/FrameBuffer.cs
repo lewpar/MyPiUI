@@ -227,9 +227,11 @@ public class FrameBuffer : IDisposable
                 }
             }
         }
-
-
-        DirtyRegions.Add(new Rectangle(x, y, width, height));
+        
+        DirtyRegions.Add(new Rectangle(x, y, width, borderWidth));                         // Top border
+        DirtyRegions.Add(new Rectangle(x, y + height - borderWidth, width, borderWidth));  // Bottom border
+        DirtyRegions.Add(new Rectangle(x, y + borderWidth, borderWidth, height - 2 * borderWidth));  // Left border
+        DirtyRegions.Add(new Rectangle(x + width - borderWidth, y + borderWidth, borderWidth, height - 2 * borderWidth)); // Right border
     }
 
     private void FillRectNoDirty(int x, int y, int width, int height, Color color)
