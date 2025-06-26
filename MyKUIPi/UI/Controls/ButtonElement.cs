@@ -103,7 +103,7 @@ public class ButtonElement : UIElement
     {
         _currentTouchState = InputManager.IsTouching(Bounds);
         
-        if (!_lastTouchState && _currentTouchState)
+        if (_lastTouchState && !_currentTouchState)
         {
             OnTouch();
         }
