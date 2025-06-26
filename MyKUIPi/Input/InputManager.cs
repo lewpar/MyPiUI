@@ -79,7 +79,7 @@ public class InputManager : IDisposable
         }
 
         var (normalizedX, normalizedY, isTouching) = Instance.GetTouchState();
-        Debug.WriteLine(normalizedX + " " + normalizedY + " " + isTouching);
+
         if (!isTouching)
         {
             return false;
