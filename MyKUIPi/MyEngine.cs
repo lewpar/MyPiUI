@@ -291,11 +291,11 @@ public class MyEngine : IDisposable
         
         SceneManager.CurrentScene.Draw(_frameBuffer);
 
+        SceneManager.CurrentScene.UIFrame?.Update(_deltaTimeMs);
+        SceneManager.CurrentScene.UIFrame?.Draw(_frameBuffer);
+        
         if (SceneManager.CurrentScene.UIFrame is not null)
         {
-            SceneManager.CurrentScene.UIFrame.Update(_deltaTimeMs);
-            SceneManager.CurrentScene.UIFrame.Draw(_frameBuffer);
-
             if (_myOptions.ShowDebugUI)
             {
                 RenderDebugUI(SceneManager.CurrentScene.UIFrame);

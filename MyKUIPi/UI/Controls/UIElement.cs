@@ -26,8 +26,14 @@ public abstract class UIElement
     
     [XmlAttribute("height")]
     public int Height { get; set; }
-    
-    public virtual void Init() { }
+
+    public virtual void Init()
+    {
+        foreach (var child in Children)
+        {
+            child.Init();
+        }
+    }
 
     public virtual void Draw(FrameBuffer buffer)
     {

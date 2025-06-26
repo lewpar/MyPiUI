@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Xml.Serialization;
 
 using MyKUIPi.Drawing;
@@ -59,13 +60,13 @@ public class ButtonElement : UIElement
         {
             if (_bounds is null)
             {
-                _bounds = new Rectangle(X, Y, 
-                    (Width > 0 ? Width : MeasureText(FontSize, Text ?? "")) + (Padding * 2), 
-                    FontSize + (Padding * 2));
+                _bounds = CalculateBounds();
             }
 
             return _bounds.Value;
         }
+
+        private set => _bounds = value;
     }
 
     [XmlAttribute("handler")]
@@ -88,6 +89,14 @@ public class ButtonElement : UIElement
     {
         Width = (Width > 0 ? Width : MeasureText(FontSize, Text ?? "")) + (Padding * 2);
         Height = FontSize + (Padding * 2);
+        Bounds = CalculateBounds();
+    }
+
+    private Rectangle CalculateBounds()
+    {
+        return new Rectangle(X, Y, 
+            (Width > 0 ? Width : MeasureText(FontSize, Text ?? "")) + (Padding * 2), 
+            FontSize + (Padding * 2));
     }
 
     public override void Update(float deltaTimeMs)

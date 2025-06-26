@@ -4,7 +4,7 @@ namespace MyKUIPi.Scene;
 
 public class SceneManager
 {
-    public SceneManager? Instance { get; set; }
+    public static SceneManager? Instance { get; set; }
     
     public MyScene? CurrentScene => _scenes.Count > 0 ? _scenes.Peek() : null;
 
@@ -25,7 +25,9 @@ public class SceneManager
         if (!string.IsNullOrWhiteSpace(scene.UI))
         {
             var uiFrame = UIHandler.Load(scene, scene.UI);
-            scene.UIFrame = uiFrame;   
+            scene.UIFrame = uiFrame;
+            
+            uiFrame.Init();
         }
 
         _scenes.Push(scene);

@@ -19,15 +19,11 @@ public class StackPanelElement : UIElement
     
     [XmlAttribute("gap")]
     public int Gap { get; set; }
-    
-    public override void Draw(FrameBuffer buffer)
+
+    public override void Init()
     {
         int offsetX = X + Padding;
         int offsetY = Y + Padding;
-
-        var panelBounds = new Rectangle(X, Y, Width, Height);
-
-        buffer.SetClip(panelBounds);
 
         foreach (var child in Children)
         {
@@ -44,7 +40,19 @@ public class StackPanelElement : UIElement
                 offsetX += child.Width + Gap;
                 child.Height = Height - Padding * 2;
             }
+            
+            child.Init();
+        }
+    }
 
+    public override void Draw(FrameBuffer buffer)
+    {
+        var panelBounds = new Rectangle(X, Y, Width, Height);
+
+        buffer.SetClip(panelBounds);
+
+        foreach (var child in Children)
+        {
             child.Draw(buffer);
         }
 

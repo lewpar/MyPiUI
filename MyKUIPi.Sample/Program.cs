@@ -1,4 +1,5 @@
 ﻿using MyKUIPi.Input;
+using MyKUIPi.Sample.Scenes;
 
 namespace MyKUIPi.Sample;
 

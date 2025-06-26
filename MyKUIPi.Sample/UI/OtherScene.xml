@@ -4,7 +4,7 @@
        xsi:schemaLocation="http://my.kuipi.com/ui ui.xsd">
 
     <StackPanel x="0" y="80" width="1920" height="1000" gap="10" padding="10">
-        <Button text="Switch to Other Scene" handler="open_other" font-size="16" padding="10" />
+        <Button text="Switch to Test Scene" handler="open_test" font-size="16" padding="10" />
     </StackPanel>
 
 </Frame>

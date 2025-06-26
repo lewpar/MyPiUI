@@ -68,16 +68,6 @@ public class UIHandler
         }
     }
 
-    private static void InitUIElement(UIElement element)
-    {
-        element.Init();
-
-        foreach (var child in element.Children)
-        {
-            InitUIElement(child);
-        }
-    }
-
     public static FrameElement Load(MyScene scene, string xmlPath)
     {
         if (!File.Exists(xmlPath))
@@ -107,7 +97,6 @@ public class UIHandler
         {
             SetParent(child, frame);
             Autowire(scene, child);
-            InitUIElement(child);
         }
 
         return frame;
