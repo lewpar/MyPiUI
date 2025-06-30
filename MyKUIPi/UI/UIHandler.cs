@@ -52,14 +52,17 @@ public class UIHandler
 
     private static void Autowire(MyScene scene, UIElement element)
     {
-        if (element is ButtonElement)
+        if (element is ButtonElement button)
         {
-            var button = element as ButtonElement;
-            if (button is not null &&
-                !string.IsNullOrWhiteSpace(button.HandlerName))
+            if (!string.IsNullOrWhiteSpace(button.HandlerName))
             {
                 AutowireButton(scene, button);   
             }
+        }
+
+        if (element is ImageElement image)
+        {
+            image.LoadImage();
         }
         
         foreach (var child in element.Children)

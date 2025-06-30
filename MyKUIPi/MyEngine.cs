@@ -11,6 +11,8 @@ namespace MyKUIPi;
 
 public class MyEngine : IDisposable
 {
+    public static MyEngine? Instance;
+    
     public MyEngineOptions MyOptions { get => _myOptions; }
     private MyEngineOptions _myOptions;
 
@@ -40,6 +42,11 @@ public class MyEngine : IDisposable
         _deltaTimer = new Stopwatch();
         _mouseCursorPosition = new Vector2(0, 0);
         _touchCursorPosition = new Vector2(0, 0);
+
+        if (Instance is null)
+        {
+            Instance = this;
+        }
     }
 
     public void Initialize()
@@ -81,7 +88,7 @@ public class MyEngine : IDisposable
         _frameBuffer.Clear(_myOptions.BackgroundColor);
     }
 
-    public static FrameBufferInfo? GetFrameBufferInfo()
+    private static FrameBufferInfo? GetFrameBufferInfo()
     {
         try
         {

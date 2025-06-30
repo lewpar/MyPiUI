@@ -68,6 +68,28 @@ public class FrameBuffer : IDisposable
         }
     }
 
+    private void DrawPixel(int x, int y, byte r, byte g, byte b)
+    {
+        if (x < 0 || x >= _frameInfo.Width ||
+            y < 0 || y >= _frameInfo.Height)
+        {
+            return;
+        }
+
+        if (_clipRect is not null && !_clipRect.Value.ContainsPoint(x, y))
+        {
+            return;
+        }
+
+        var rawColor = _is16Bit ?
+            Color.To16Bit(r, g, b) :
+            Color.ToLittleEndian(r, g, b);
+
+        var pixelOffset = (y * _frameInfo.Width + x) * _bytesPerPixel;
+
+        Buffer.BlockCopy(rawColor, 0, _softwareBackBuffer, pixelOffset, _bytesPerPixel);
+    }
+
     private void DrawPixel(int x, int y, Color color)
     {
         if (x < 0 || x >= _frameInfo.Width ||
@@ -88,6 +110,59 @@ public class FrameBuffer : IDisposable
         var pixelOffset = (y * _frameInfo.Width + x) * _bytesPerPixel;
 
         Buffer.BlockCopy(rawColor, 0, _softwareBackBuffer, pixelOffset, _bytesPerPixel);
+    }
+    
+    public void DrawImage(int x, int y, BitmapImage image)
+    {
+        Color mask = Color.Fuchsia;
+
+        for (int py = 0; py < image.Height; py++)
+        {
+            int destY = y + py;
+            if (destY < 0 || destY >= _frameInfo.Height)
+                continue;
+
+            for (int px = 0; px < image.Width; px++)
+            {
+                int destX = x + px;
+                if (destX < 0 || destX >= _frameInfo.Width)
+                    continue;
+
+                byte r = 0;
+                byte g = 0;
+                byte b = 0;
+
+                if (_frameInfo.Depth == 16)
+                {
+                    int srcIndex = (py * image.Width + px) * 2;
+                    ushort pixel = BitConverter.ToUInt16(image.PixelData, srcIndex);
+
+                    r = (byte)(((pixel >> 11) & 0x1F) * 255 / 31);
+                    g = (byte)(((pixel >> 5) & 0x3F) * 255 / 63);
+                    b = (byte)((pixel & 0x1F) * 255 / 31);
+                }
+                else if (_frameInfo.Depth == 32)
+                {
+                    int srcIndex = (py * image.Width + px) * 4;
+                    b = image.PixelData[srcIndex + 0];
+                    g = image.PixelData[srcIndex + 1];
+                    r = image.PixelData[srcIndex + 2];
+                }
+                else
+                {
+                    throw new NotSupportedException($"Unsupported bpp: {_frameInfo.Depth}");
+                }
+
+                if (mask.R == r && mask.G == g && mask.B == b)
+                {
+                    continue;
+                }
+
+                DrawPixel(destX, destY, r, g, b);
+            }
+        }
+
+        DirtyRegions.Add(new Rectangle(x, y, image.Width, image.Height));
     }
 
     public void FillTriangle(Vector2 p1, Vector2 p2, Vector2 p3, Color color)

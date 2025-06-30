@@ -11,6 +11,7 @@ public abstract class UIElement
     [XmlElement("Rectangle", typeof(RectangleElement))]
     [XmlElement("Button", typeof(ButtonElement))]
     [XmlElement("StackPanel", typeof(StackPanelElement))]
+    [XmlElement("Image", typeof(ImageElement))]
     public List<UIElement> Children { get; } = new List<UIElement>();
     
     [XmlIgnore]

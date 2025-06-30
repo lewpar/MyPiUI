@@ -15,6 +15,7 @@
         <xs:complexType>
             <xs:choice minOccurs="1" maxOccurs="50">
                 <xs:element ref="Button" />
+                <xs:element ref="Image" />
             </xs:choice>
 
             <xs:attribute name="x" type="xs:int" />
@@ -45,6 +46,12 @@
                 <xs:element ref="Rectangle" />
                 <xs:element ref="Button" />
             </xs:choice>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="Image">
+        <xs:complexType>
+            <xs:attribute name="source" type="xs:string" />
         </xs:complexType>
     </xs:element>
 
