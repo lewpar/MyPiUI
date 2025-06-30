@@ -77,6 +77,8 @@ public class MyEngine : IDisposable
 
         _mouseCursorPosition = new Vector2((int)(_frameBufferInfo.Width / 2), 
                                             (int)(_frameBufferInfo.Height / 2));
+        
+        _frameBuffer.Clear(_myOptions.BackgroundColor);
     }
 
     public static FrameBufferInfo? GetFrameBufferInfo()
@@ -163,7 +165,7 @@ public class MyEngine : IDisposable
             return;
         }
         
-        _frameBuffer.DrawText(15, 15, $"Frame Diff (ms): {_deltaTimeMs}", Color.White);
+        _frameBuffer.DrawText(15, 15, $"Frame Diff (ms): {_deltaTimeMs}", _myOptions.ForegroundColor);
     }
 
     private void UpdateMousePosition()
@@ -285,7 +287,7 @@ public class MyEngine : IDisposable
 
         foreach (var dirtyRegion in _frameBuffer.DirtyRegions)
         {
-            _frameBuffer.Clear(Color.Black, dirtyRegion);
+            _frameBuffer.Clear(_myOptions.BackgroundColor, dirtyRegion);
         }
         _frameBuffer.DirtyRegions.Clear();
         

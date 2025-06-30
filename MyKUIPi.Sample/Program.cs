@@ -1,4 +1,5 @@
 ﻿using MyKUIPi.Input;
+using MyKUIPi.Primitives;
 using MyKUIPi.Sample.Scenes;
 
 namespace MyKUIPi.Sample;
@@ -20,6 +21,9 @@ class Program
             HideConsoleCaret = true,
             ShowMetrics = true,
             ShowDebugUI = true,
+            
+            BackgroundColor = Color.Black,
+            ForegroundColor = Color.White,
         });
         
         engine.Initialize();
