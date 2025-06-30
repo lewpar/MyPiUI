@@ -33,7 +33,7 @@ public class ButtonElement : UIElement
     public string ForegroundHex
     {
         get => Color.ToHex(Foreground);
-        set => Foreground = string.IsNullOrWhiteSpace(value) ? Color.Black : Color.FromHex(value);
+        set => Foreground = string.IsNullOrWhiteSpace(value) ? Color.White : Color.FromHex(value);
     }
     
     public Color Background { get; set; }
@@ -42,7 +42,16 @@ public class ButtonElement : UIElement
     public string BackgroundHex
     {
         get => Color.ToHex(Background);
-        set => Background = string.IsNullOrWhiteSpace(value) ? Color.White : Color.FromHex(value);
+        set => Background = string.IsNullOrWhiteSpace(value) ? Color.DodgerBlue : Color.FromHex(value);
+    }
+    
+    public Color BackgroundHover { get; set; }
+
+    [XmlAttribute("background-hover")]
+    public string BackgroundHoverHex
+    {
+        get => Color.ToHex(BackgroundHover);
+        set => BackgroundHover = string.IsNullOrWhiteSpace(value) ? Color.SkyBlue : Color.FromHex(value);
     }
     
     [XmlAttribute("padding")]
@@ -89,9 +98,7 @@ public class ButtonElement : UIElement
 
     public override void Draw(FrameBuffer buffer)
     {
-        buffer.FillRect(X, Y, Width, Height, _currentTouchState ? Color.White : Color.Gray);
-            
-        buffer.DrawRect(X, Y, Width, Height, BorderSize, _currentTouchState ? Color.White : Color.Gray);
+        buffer.FillRect(X, Y, Width, Height, _currentTouchState ? BackgroundHover : Background);
 
         if (!string.IsNullOrWhiteSpace(Text))
         {

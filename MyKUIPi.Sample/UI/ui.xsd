@@ -55,8 +55,9 @@
             <xs:attribute name="text" type="xs:string" />
             <xs:attribute name="font-size" type="xs:int" />
 
-            <xs:attribute name="background" type="xs:string" default="#ffffff" />
-            <xs:attribute name="foreground" type="xs:string" default="#000000" />
+            <xs:attribute name="background" type="xs:string" default="#1e90ff" />
+            <xs:attribute name="background-hover" type="xs:string" default="#4ba6ff" />
+            <xs:attribute name="foreground" type="xs:string" default="#ffffff" />
 
             <xs:attribute name="border-size" type="xs:int" />
             <xs:attribute name="border-color" type="xs:string" default="#f0f0f0" />

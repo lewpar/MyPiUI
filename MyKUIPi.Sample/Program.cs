@@ -20,10 +20,10 @@ class Program
             
             HideConsoleCaret = true,
             ShowMetrics = true,
-            ShowDebugUI = true,
+            ShowDebugUI = false,
             
-            BackgroundColor = Color.Black,
-            ForegroundColor = Color.White,
+            BackgroundColor = new Color(220, 220, 220),
+            ForegroundColor = Color.Black,
         });
         
         engine.Initialize();
