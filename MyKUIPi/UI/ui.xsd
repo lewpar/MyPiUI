@@ -44,8 +44,10 @@
     <xs:element name="Grid">
         <xs:complexType>
             <xs:choice minOccurs="0" maxOccurs="50">
+                <xs:element ref="StackPanel" />
                 <xs:element ref="Rectangle" />
                 <xs:element ref="Button" />
+                <xs:element ref="Image" />
             </xs:choice>
         </xs:complexType>
     </xs:element>
