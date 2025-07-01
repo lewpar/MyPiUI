@@ -34,6 +34,8 @@ public class MyEngine : IDisposable
     private Vector2 _mouseCursorPosition;
     private Vector2 _touchCursorPosition;
 
+    private RenderTimingMetrics? _drawMetrics;
+
     public MyEngine(MyEngineOptions myOptions)
     {
         _myOptions = myOptions;
@@ -171,8 +173,28 @@ public class MyEngine : IDisposable
         {
             return;
         }
+
+        if (_drawMetrics is null)
+        {
+            return;
+        }
         
-        _frameBuffer.DrawText(15, 15, $"Frame Diff (ms): {_deltaTimeMs}", _myOptions.ForegroundColor);
+        int x = 15, y = 15, lineHeight = 12;
+        int totalHeight = lineHeight * 10 + lineHeight;
+        int totalWidth = 8 * 20;
+        var color = _myOptions.ForegroundColor;
+
+        _frameBuffer.FillRect(0, 0, totalWidth, totalHeight, _myOptions.BackgroundColor);
+        _frameBuffer.DrawText(x, y, $"Frame Δ: {_deltaTimeMs} ms", color); y += lineHeight;
+        _frameBuffer.DrawText(x, y, $"Clear: {_drawMetrics.ClearTime:F2} ms", color); y += lineHeight;
+        _frameBuffer.DrawText(x, y, $"Scene: {_drawMetrics.SceneDrawTime:F2} ms", color); y += lineHeight;
+        _frameBuffer.DrawText(x, y, $"UI: {_drawMetrics.UIDrawTime:F2} ms", color); y += lineHeight;
+        _frameBuffer.DrawText(x, y, $"Debug UI: {_drawMetrics.DebugUIDrawTime:F2} ms", color); y += lineHeight;
+        _frameBuffer.DrawText(x, y, $"Metrics: {_drawMetrics.MetricsTime:F2} ms", color); y += lineHeight;
+        _frameBuffer.DrawText(x, y, $"Mouse: {_drawMetrics.MouseTime:F2} ms", color); y += lineHeight;
+        _frameBuffer.DrawText(x, y, $"Touch: {_drawMetrics.TouchTime:F2} ms", color); y += lineHeight;
+        _frameBuffer.DrawText(x, y, $"Swap: {_drawMetrics.SwapTime:F2} ms", color); y += lineHeight;
+        _frameBuffer.DrawText(x, y, $"Total: {_drawMetrics.TotalDrawTime:F2} ms", color);
     }
 
     private void UpdateMousePosition()
@@ -265,41 +287,27 @@ public class MyEngine : IDisposable
     public void Update()
     {
         if (_frameBuffer is null)
-        {
             throw new Exception("Frame buffer not initialized.");
-        }
 
         if (SceneManager.CurrentScene is null)
-        {
             throw new Exception("No scene available to render.");
-        }
 
         if (SceneManager.CurrentScene.Input is null)
-        {
             SceneManager.CurrentScene.Input = _inputManager;
-        }
 
 #if !DEBUG
-        // Consume any console keys so they dont get rendered.
-        if (Console.KeyAvailable)
-        {
-            _ = Console.ReadKey(true);
-        }
+    if (Console.KeyAvailable)
+        _ = Console.ReadKey(true);
 #endif
 
         SceneManager.CurrentScene.Update(_deltaTimeMs);
-
         SceneManager.CurrentScene.UIFrame?.Update(_deltaTimeMs);
 
         if (!string.IsNullOrWhiteSpace(_myOptions.MouseDevice))
-        {
             UpdateMousePosition();
-        }
 
         if (!string.IsNullOrWhiteSpace(_myOptions.TouchDevice))
-        {
             UpdateTouchPosition();
-        }
     }
 
     public void Draw()
@@ -313,43 +321,86 @@ public class MyEngine : IDisposable
         {
             throw new Exception("No scene available to render.");
         }
-        
+
         _deltaTimeMs = _deltaTimer.ElapsedMilliseconds;
         _deltaTimer.Restart();
-        
+
+        var totalTimer = Stopwatch.StartNew();
+
+        // Clear Dirty Regions
+        var clearTimer = Stopwatch.StartNew();
         foreach (var dirtyRegion in _frameBuffer.DirtyRegions)
         {
             _frameBuffer.Clear(_myOptions.BackgroundColor, dirtyRegion);
         }
         _frameBuffer.DirtyRegions.Clear();
-        
+        clearTimer.Stop();
+
+        // Scene Draw
+        var sceneDrawTimer = Stopwatch.StartNew();
         SceneManager.CurrentScene.Draw(_frameBuffer);
-        
+        sceneDrawTimer.Stop();
+
+        // UI Draw
+        var uiDrawTimer = Stopwatch.StartNew();
         SceneManager.CurrentScene.UIFrame?.Draw(_frameBuffer);
+        uiDrawTimer.Stop();
+
+        // Debug UI Draw
+        var debugUIDrawTimer = Stopwatch.StartNew();
         if (SceneManager.CurrentScene.UIFrame is not null &&
             _myOptions.ShowDebugUI)
         {
             RenderDebugUI(SceneManager.CurrentScene.UIFrame);
         }
+        debugUIDrawTimer.Stop();
 
+        // Metrics Render
+        var metricsTimer = Stopwatch.StartNew();
         if (_myOptions.ShowMetrics)
         {
             RenderMetrics();
         }
-        
+        metricsTimer.Stop();
+
+        // Mouse Cursor
+        var mouseTimer = Stopwatch.StartNew();
         if (!string.IsNullOrWhiteSpace(_myOptions.MouseDevice))
         {
             RenderMouseCursor();
         }
-        
+        mouseTimer.Stop();
+
+        // Touch Cursor
+        var touchTimer = Stopwatch.StartNew();
         if (!string.IsNullOrWhiteSpace(_myOptions.TouchDevice))
         {
             RenderTouchCursor();
         }
-        
-        _frameBuffer.SwapBuffers();
-    }
+        touchTimer.Stop();
 
+        // Swap Buffers
+        var swapTimer = Stopwatch.StartNew();
+        _frameBuffer.SwapBuffers();
+        swapTimer.Stop();
+
+        totalTimer.Stop();
+
+        _drawMetrics = new RenderTimingMetrics
+        {
+            ClearTime = clearTimer.Elapsed.TotalMilliseconds,
+            SceneDrawTime = sceneDrawTimer.Elapsed.TotalMilliseconds,
+            UIDrawTime = uiDrawTimer.Elapsed.TotalMilliseconds,
+            DebugUIDrawTime = debugUIDrawTimer.Elapsed.TotalMilliseconds,
+            MetricsTime = metricsTimer.Elapsed.TotalMilliseconds,
+            MouseTime = mouseTimer.Elapsed.TotalMilliseconds,
+            TouchTime = touchTimer.Elapsed.TotalMilliseconds,
+            SwapTime = swapTimer.Elapsed.TotalMilliseconds,
+            TotalDrawTime = totalTimer.Elapsed.TotalMilliseconds,
+        };
+
+    }
+    
     public void Dispose()
     {
         _inputManager?.Dispose();

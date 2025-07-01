@@ -38,20 +38,13 @@ class Program
         {
             e.Cancel = true;
             isRunning = false;
+            Console.Clear();
         };
-
-        var drawThread = new Thread(() =>
-        {
-            while (isRunning)
-            {
-                engine.Draw();
-            }
-        });
-        drawThread.Start();
 
         while (isRunning)
         {
             engine.Update();
+            engine.Draw();
         }
     }
 }

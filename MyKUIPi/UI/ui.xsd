@@ -10,22 +10,24 @@
             </xs:choice>
         </xs:complexType>
     </xs:element>
-    
+
     <xs:element name="StackPanel">
         <xs:complexType>
             <xs:choice minOccurs="1" maxOccurs="50">
                 <xs:element ref="Button" />
+                <xs:element ref="Image" />
+                <xs:element ref="StackPanel" />
             </xs:choice>
-            
+
             <xs:attribute name="x" type="xs:int" />
             <xs:attribute name="y" type="xs:int" />
-            
+
             <xs:attribute name="width" type="xs:int" />
             <xs:attribute name="height" type="xs:int" />
-            
+
             <xs:attribute name="padding" type="xs:int" />
             <xs:attribute name="gap" type="xs:int" />
-            
+
             <xs:attribute name="orientation" type="xs:int" default="0" />
         </xs:complexType>
     </xs:element>
@@ -48,6 +50,12 @@
         </xs:complexType>
     </xs:element>
 
+    <xs:element name="Image">
+        <xs:complexType>
+            <xs:attribute name="source" type="xs:string" />
+        </xs:complexType>
+    </xs:element>
+
     <xs:element name="Button">
         <xs:complexType>
             <xs:attribute name="handler" type="xs:string" />
@@ -55,8 +63,9 @@
             <xs:attribute name="text" type="xs:string" />
             <xs:attribute name="font-size" type="xs:int" />
 
-            <xs:attribute name="background" type="xs:string" default="#ffffff" />
-            <xs:attribute name="foreground" type="xs:string" default="#000000" />
+            <xs:attribute name="background" type="xs:string" default="#1e90ff" />
+            <xs:attribute name="background-hover" type="xs:string" default="#4ba6ff" />
+            <xs:attribute name="foreground" type="xs:string" default="#ffffff" />
 
             <xs:attribute name="border-size" type="xs:int" />
             <xs:attribute name="border-color" type="xs:string" default="#f0f0f0" />

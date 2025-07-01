@@ -50,7 +50,34 @@ public class FrameBuffer : IDisposable
 
     public void Clear(Color color, Rectangle rect)
     {
-        FillRectNoDirty(rect.X, rect.Y, rect.Width, rect.Height, color);
+        int x0 = Math.Max(0, rect.X);
+        int y0 = Math.Max(0, rect.Y);
+        int x1 = Math.Min(_frameInfo.Width, rect.X + rect.Width);
+        int y1 = Math.Min(_frameInfo.Height, rect.Y + rect.Height);
+
+        byte[] rawColor = _is16Bit
+            ? Color.To16Bit(color)
+            : Color.ToLittleEndian(color);
+
+        int pitch = _frameInfo.Width * _bytesPerPixel;
+
+        unsafe
+        {
+            fixed (byte* bufferPtr = _softwareBackBuffer)
+            fixed (byte* colorPtr = rawColor)
+            {
+                for (int y = y0; y < y1; y++)
+                {
+                    byte* row = bufferPtr + (y * pitch) + (x0 * _bytesPerPixel);
+
+                    for (int x = x0; x < x1; x++)
+                    {
+                        Buffer.MemoryCopy(colorPtr, row, _bytesPerPixel, _bytesPerPixel);
+                        row += _bytesPerPixel;
+                    }
+                }
+            }
+        }
     }
 
     public void Clear(Color color)
@@ -92,77 +119,103 @@ public class FrameBuffer : IDisposable
 
     private void DrawPixel(int x, int y, Color color)
     {
-        if (x < 0 || x >= _frameInfo.Width ||
-            y < 0 || y >= _frameInfo.Height)
-        {
+        if (x < 0 || x >= _frameInfo.Width || y < 0 || y >= _frameInfo.Height)
             return;
-        }
 
         if (_clipRect is not null && !_clipRect.Value.ContainsPoint(x, y))
-        {
             return;
+
+        var rawColor = _is16Bit ? Color.To16Bit(color) : Color.ToLittleEndian(color);
+        int pixelOffset = (y * _frameInfo.Width + x) * _bytesPerPixel;
+
+        unsafe
+        {
+            fixed (byte* bufferPtr = _softwareBackBuffer)
+            fixed (byte* colorPtr = rawColor)
+            {
+                byte* dst = bufferPtr + pixelOffset;
+                for (int i = 0; i < _bytesPerPixel; i++)
+                {
+                    dst[i] = colorPtr[i];
+                }
+            }
         }
-
-        var rawColor = _is16Bit ?
-            Color.To16Bit(color) :
-            Color.ToLittleEndian(color);
-
-        var pixelOffset = (y * _frameInfo.Width + x) * _bytesPerPixel;
-
-        Buffer.BlockCopy(rawColor, 0, _softwareBackBuffer, pixelOffset, _bytesPerPixel);
     }
     
     public void DrawImage(int x, int y, BitmapImage image)
     {
         Color mask = Color.Fuchsia;
+        int bytesPerPixel = _bytesPerPixel;
+        int frameWidth = _frameInfo.Width;
+        int frameHeight = _frameInfo.Height;
+        int imgWidth = image.Width;
+        int imgHeight = image.Height;
+        byte[] pixelData = image.PixelData;
+        int depth = _frameInfo.Depth;
 
-        for (int py = 0; py < image.Height; py++)
+        unsafe
         {
-            int destY = y + py;
-            if (destY < 0 || destY >= _frameInfo.Height)
-                continue;
-
-            for (int px = 0; px < image.Width; px++)
+            fixed (byte* bufferPtr = _softwareBackBuffer)
             {
-                int destX = x + px;
-                if (destX < 0 || destX >= _frameInfo.Width)
-                    continue;
-
-                byte r = 0;
-                byte g = 0;
-                byte b = 0;
-
-                if (_frameInfo.Depth == 16)
+                for (int py = 0; py < imgHeight; py++)
                 {
-                    int srcIndex = (py * image.Width + px) * 2;
-                    ushort pixel = BitConverter.ToUInt16(image.PixelData, srcIndex);
+                    int destY = y + py;
+                    if (destY < 0 || destY >= frameHeight)
+                        continue;
 
-                    r = (byte)(((pixel >> 11) & 0x1F) * 255 / 31);
-                    g = (byte)(((pixel >> 5) & 0x3F) * 255 / 63);
-                    b = (byte)((pixel & 0x1F) * 255 / 31);
-                }
-                else if (_frameInfo.Depth == 32)
-                {
-                    int srcIndex = (py * image.Width + px) * 4;
-                    b = image.PixelData[srcIndex + 0];
-                    g = image.PixelData[srcIndex + 1];
-                    r = image.PixelData[srcIndex + 2];
-                }
-                else
-                {
-                    throw new NotSupportedException($"Unsupported bpp: {_frameInfo.Depth}");
-                }
+                    for (int px = 0; px < imgWidth; px++)
+                    {
+                        int destX = x + px;
+                        if (destX < 0 || destX >= frameWidth)
+                            continue;
 
-                if (mask.R == r && mask.G == g && mask.B == b)
-                {
-                    continue;
-                }
+                        int srcIndex = (py * imgWidth + px) * (depth / 8);
 
-                DrawPixel(destX, destY, r, g, b);
+                        byte r, g, b;
+
+                        if (depth == 16)
+                        {
+                            ushort pixel = BitConverter.ToUInt16(pixelData, srcIndex);
+                            r = (byte)(((pixel >> 11) & 0x1F) * 255 / 31);
+                            g = (byte)(((pixel >> 5) & 0x3F) * 255 / 63);
+                            b = (byte)((pixel & 0x1F) * 255 / 31);
+                        }
+                        else if (depth == 32)
+                        {
+                            b = pixelData[srcIndex + 0];
+                            g = pixelData[srcIndex + 1];
+                            r = pixelData[srcIndex + 2];
+                        }
+                        else
+                        {
+                            throw new NotSupportedException($"Unsupported bpp: {depth}");
+                        }
+
+                        if (r == mask.R && g == mask.G && b == mask.B)
+                            continue;
+
+                        int destOffset = (destY * frameWidth + destX) * bytesPerPixel;
+                        byte* dst = bufferPtr + destOffset;
+
+                        if (_is16Bit)
+                        {
+                            ushort raw = Color.To16BitValue(r, g, b);
+                            dst[0] = (byte)(raw & 0xFF);
+                            dst[1] = (byte)(raw >> 8);
+                        }
+                        else
+                        {
+                            dst[0] = b;
+                            dst[1] = g;
+                            dst[2] = r;
+                            dst[3] = 0xFF;
+                        }
+                    }
+                }
             }
         }
 
-        DirtyRegions.Add(new Rectangle(x, y, image.Width, image.Height));
+        DirtyRegions.Add(new Rectangle(x, y, imgWidth, imgHeight));
     }
 
     public void FillTriangle(Vector2 p1, Vector2 p2, Vector2 p3, Color color)
@@ -311,21 +364,33 @@ public class FrameBuffer : IDisposable
 
     private void FillRectNoDirty(int x, int y, int width, int height, Color color)
     {
-        for (int py = y; py < y + height; py++)
+        int x0 = Math.Max(0, x);
+        int y0 = Math.Max(0, y);
+        int x1 = Math.Min(_frameInfo.Width, x + width);
+        int y1 = Math.Min(_frameInfo.Height, y + height);
+
+        byte[] rawColor = _is16Bit ? Color.To16Bit(color) : Color.ToLittleEndian(color);
+
+        int pitch = _frameInfo.Width * _bytesPerPixel;
+
+        unsafe
         {
-            if (py < 0 || py >= _frameInfo.Height)
+            fixed (byte* bufferPtr = _softwareBackBuffer)
+            fixed (byte* colorPtr = rawColor)
             {
-                continue;
-            }
-
-            for (int px = x; px < x + width; px++)
-            {
-                if (px < 0 || px >= _frameInfo.Width)
+                for (int py = y0; py < y1; py++)
                 {
-                    continue;
-                }
+                    byte* row = bufferPtr + (py * pitch) + (x0 * _bytesPerPixel);
 
-                DrawPixel(px, py, color);
+                    for (int px = x0; px < x1; px++)
+                    {
+                        for (int b = 0; b < _bytesPerPixel; b++)
+                        {
+                            row[b] = colorPtr[b];
+                        }
+                        row += _bytesPerPixel;
+                    }
+                }
             }
         }
     }

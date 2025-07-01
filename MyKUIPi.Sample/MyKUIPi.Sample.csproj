@@ -24,10 +24,6 @@
       <Content Include="UI\TestScene.xml">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
-      <None Remove="UI\ui.xsd" />
-      <Content Include="UI\ui.xsd">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
       <None Remove="UI\OtherScene.xml" />
       <Content Include="UI\OtherScene.xml">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

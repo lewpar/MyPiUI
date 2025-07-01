@@ -79,6 +79,15 @@ public struct Color
         // Convert to little-endian bytes
         return new byte[] { (byte)(color16 & 0xFF), (byte)((color16 >> 8) & 0xFF) };
     }
+    
+    public static ushort To16BitValue(byte r, byte g, byte b)
+    {
+        return (ushort)(
+            (((r * 31) / 255) << 11) |
+            (((g * 63) / 255) << 5) |
+            ((b * 31) / 255)
+        );
+    }
 
     public static Color Black => new Color(0, 0, 0);
     public static Color White => new Color(255, 255, 255);
