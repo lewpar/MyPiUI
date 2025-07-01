@@ -97,35 +97,13 @@ public class FrameBuffer : IDisposable
 
     private void DrawPixel(int x, int y, byte r, byte g, byte b)
     {
-        if (x < 0 || x >= _frameInfo.Width ||
-            y < 0 || y >= _frameInfo.Height)
-        {
-            return;
-        }
-
-        if (_clipRect is not null && !_clipRect.Value.ContainsPoint(x, y))
-        {
-            return;
-        }
-
-        var rawColor = _is16Bit ?
-            Color.To16Bit(r, g, b) :
-            Color.ToLittleEndian(r, g, b);
-
-        var pixelOffset = (y * _frameInfo.Width + x) * _bytesPerPixel;
-
-        Buffer.BlockCopy(rawColor, 0, _softwareBackBuffer, pixelOffset, _bytesPerPixel);
-    }
-
-    private void DrawPixel(int x, int y, Color color)
-    {
         if (x < 0 || x >= _frameInfo.Width || y < 0 || y >= _frameInfo.Height)
             return;
 
         if (_clipRect is not null && !_clipRect.Value.ContainsPoint(x, y))
             return;
 
-        var rawColor = _is16Bit ? Color.To16Bit(color) : Color.ToLittleEndian(color);
+        var rawColor = _is16Bit ? Color.To16Bit(r, g, b) : Color.ToLittleEndian(r, g, b);
         int pixelOffset = (y * _frameInfo.Width + x) * _bytesPerPixel;
 
         unsafe
@@ -140,6 +118,11 @@ public class FrameBuffer : IDisposable
                 }
             }
         }
+    }
+
+    private void DrawPixel(int x, int y, Color color)
+    {
+        DrawPixel(x, y, color.R, color.G, color.B);
     }
     
     public void DrawImage(int x, int y, BitmapImage image)
