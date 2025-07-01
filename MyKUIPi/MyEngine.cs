@@ -287,11 +287,36 @@ public class MyEngine : IDisposable
         }
 #endif
 
-        _deltaTimeMs = _deltaTimer.ElapsedMilliseconds;
-        _deltaTimer.Restart();
-
         SceneManager.CurrentScene.Update(_deltaTimeMs);
 
+        SceneManager.CurrentScene.UIFrame?.Update(_deltaTimeMs);
+
+        if (!string.IsNullOrWhiteSpace(_myOptions.MouseDevice))
+        {
+            UpdateMousePosition();
+        }
+
+        if (!string.IsNullOrWhiteSpace(_myOptions.TouchDevice))
+        {
+            UpdateTouchPosition();
+        }
+    }
+
+    public void Draw()
+    {
+        if (_frameBuffer is null)
+        {
+            throw new Exception("Frame buffer not initialized.");
+        }
+
+        if (SceneManager.CurrentScene is null)
+        {
+            throw new Exception("No scene available to render.");
+        }
+        
+        _deltaTimeMs = _deltaTimer.ElapsedMilliseconds;
+        _deltaTimer.Restart();
+        
         foreach (var dirtyRegion in _frameBuffer.DirtyRegions)
         {
             _frameBuffer.Clear(_myOptions.BackgroundColor, dirtyRegion);
@@ -299,10 +324,8 @@ public class MyEngine : IDisposable
         _frameBuffer.DirtyRegions.Clear();
         
         SceneManager.CurrentScene.Draw(_frameBuffer);
-
-        SceneManager.CurrentScene.UIFrame?.Update(_deltaTimeMs);
-        SceneManager.CurrentScene.UIFrame?.Draw(_frameBuffer);
         
+        SceneManager.CurrentScene.UIFrame?.Draw(_frameBuffer);
         if (SceneManager.CurrentScene.UIFrame is not null &&
             _myOptions.ShowDebugUI)
         {
@@ -313,19 +336,17 @@ public class MyEngine : IDisposable
         {
             RenderMetrics();
         }
-
+        
         if (!string.IsNullOrWhiteSpace(_myOptions.MouseDevice))
         {
-            UpdateMousePosition();
             RenderMouseCursor();
         }
-
+        
         if (!string.IsNullOrWhiteSpace(_myOptions.TouchDevice))
         {
-            UpdateTouchPosition();
             RenderTouchCursor();
         }
-
+        
         _frameBuffer.SwapBuffers();
     }
 

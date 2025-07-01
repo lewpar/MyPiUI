@@ -40,6 +40,15 @@ class Program
             isRunning = false;
         };
 
+        var drawThread = new Thread(() =>
+        {
+            while (isRunning)
+            {
+                engine.Draw();
+            }
+        });
+        drawThread.Start();
+
         while (isRunning)
         {
             engine.Update();
