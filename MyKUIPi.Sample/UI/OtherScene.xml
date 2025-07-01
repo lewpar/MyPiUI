@@ -5,7 +5,7 @@
 
     <StackPanel x="0" y="80" width="1920" height="1000" gap="10" padding="10" orientation="0">
         <Button text="Useless Button" font-size="16" padding="10" />
-        <StackPanel orientation="1" height="200" width="200">
+        <StackPanel orientation="1" height="200">
             <Image source="./UI/Images/icon-small.png" />
             <Button text="Switch to Test Scene" handler="open_test" font-size="16" padding="10" />
         </StackPanel>

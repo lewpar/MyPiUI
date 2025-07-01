@@ -44,6 +44,7 @@ public class StackPanelElement : UIElement
     {
         int offsetX = X + Padding;
         int offsetY = Y + Padding;
+        
         var panelBounds = new Rectangle(X, Y, Width, Height);
 
         buffer.SetClip(panelBounds);
