@@ -27,6 +27,7 @@ public class BitmapImage
 
         byte[] pixelData = bpp switch
         {
+            
             16 => ConvertToRGB565(image, width, height),
             32 => ConvertToBGRA32(image, width, height),
             _ => throw new NotSupportedException("Unsupported bpp.")

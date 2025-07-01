@@ -28,6 +28,9 @@ public class ImageElement : UIElement
         Image = BitmapImage.Load(Source, MyEngine.Instance is null || MyEngine.Instance.FrameBufferInfo is null ? 
                                             16 : 
                                             MyEngine.Instance.FrameBufferInfo.Depth);
+        
+        Width = Image.Width;
+        Height = Image.Height;
     }
 
     public override void Draw(FrameBuffer buffer)
@@ -37,6 +40,8 @@ public class ImageElement : UIElement
             return;
         }
         
-        buffer.DrawImage(100, 100, Image);
+        buffer.SetClip(new Rectangle(X, Y, Width, Height));
+        buffer.DrawImage(X, Y, Image);
+        buffer.ClearClip();
     }
 }

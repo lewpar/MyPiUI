@@ -4,8 +4,10 @@
        xsi:schemaLocation="http://my.kuipi.com/ui ui.xsd">
 
     <StackPanel x="0" y="80" width="1920" height="1000" gap="10" padding="10" orientation="1">
-        <Button text="Switch to Test Scene" handler="open_test" font-size="16" padding="10" />
-        <Button text="Useless Button" font-size="16" padding="10" />
+        <StackPanel orientation="2" height="200" width="200">
+            <Image source="./UI/Images/icon-small.png" />
+            <Button text="Switch to Test Scene" handler="open_test" font-size="16" padding="10" />
+        </StackPanel>
     </StackPanel>
 
 </Frame>
