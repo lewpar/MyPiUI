@@ -248,7 +248,7 @@ public class MyEngine : IDisposable
     private void UpdateTouchPosition()
     {
         var (x, y, _) = _inputManager.GetTouchState();
-        _touchCursorPosition = new Vector2(y, x);
+        _touchCursorPosition = new Vector2(-y, x);
     }
 
     private void RenderTouchCursor()
