@@ -7,9 +7,7 @@ public static class InputDeviceEnumerator
     public class InputDeviceInfo
     {
         public string? Path { get; set; }
-        public bool IsKeyboard { get; set; }
         public bool IsTouchpad { get; set; }
-        public bool IsMouse { get; set; }
     }
 
     public static List<InputDeviceInfo> EnumerateDevices()
@@ -65,10 +63,6 @@ public static class InputDeviceEnumerator
                 if (line.Contains("E: ID_INPUT_TOUCHPAD=1") ||
                     line.Contains("E: ID_INPUT_TOUCHSCREEN=1"))
                     info.IsTouchpad = true;
-                if (line.Contains("E: ID_INPUT_KEYBOARD=1"))
-                    info.IsKeyboard = true;
-                if (line.Contains("E: ID_INPUT_MOUSE=1"))
-                    info.IsMouse = true;
             }
 
             return info;
@@ -77,18 +71,6 @@ public static class InputDeviceEnumerator
         {
             return null;
         }
-    }
-
-    public static string? AutoDetectKeyboardDevice()
-    {
-        var devices = EnumerateDevices();
-        return devices.FirstOrDefault(d => d.IsKeyboard)?.Path;
-    }
-
-    public static string? AutoDetectMouseDevice()
-    {
-        var devices = EnumerateDevices();
-        return devices.FirstOrDefault(d => d.IsMouse)?.Path;
     }
 
     public static string? AutoDetectTouchDevice()

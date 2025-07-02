@@ -12,13 +12,12 @@ class Program
         {
             FrameBufferDevice = "/dev/fb0",
             
-            KeyboardDevice = InputDeviceEnumerator.AutoDetectKeyboardDevice(),
             TouchDevice = InputDeviceEnumerator.AutoDetectTouchDevice(),
             MaxTouchX = 4095,
             MaxTouchY = 4095,
             
             HideConsoleCaret = true,
-            ShowMetrics = false,
+            ShowMetrics = true,
             ShowDebugUI = false,
             
             BackgroundColor = new Color(220, 220, 220),

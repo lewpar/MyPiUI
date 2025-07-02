@@ -443,9 +443,24 @@ public class FrameBuffer : IDisposable
     
     public void SwapBuffers()
     {
-        _frameBufferAccessor.WriteArray(0, _softwareBackBuffer, 0, _softwareBackBuffer.Length);
+        unsafe
+        {
+            fixed (byte* src = _softwareBackBuffer)
+            {
+                byte* dst = null;
+                _frameBufferAccessor.SafeMemoryMappedViewHandle.AcquirePointer(ref dst);
+                try
+                {
+                    Buffer.MemoryCopy(src, dst, _softwareBackBuffer.Length, _softwareBackBuffer.Length);
+                }
+                finally
+                {
+                    _frameBufferAccessor.SafeMemoryMappedViewHandle.ReleasePointer();
+                }
+            }
+        }
     }
-
+    
     public void Dispose()
     {
         _frameBufferAccessor.Dispose();
