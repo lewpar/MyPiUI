@@ -73,7 +73,7 @@ public class TouchReader : InputDeviceReader<TouchReader.InputEvent>
         {
             float normX = Math.Clamp((float)TouchX / _maxTouchX, 0f, 1f);
             float normY = Math.Clamp((float)TouchY / _maxTouchY, 0f, 1f);
-            return (normX, normY, IsTouching);
+            return (1 - normY, normX, IsTouching);
         }
     }
 }

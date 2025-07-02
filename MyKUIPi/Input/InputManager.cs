@@ -78,8 +78,8 @@ public class InputManager : IDisposable
             return false;
         }
 
-        var x = -normalizedY * _screenWidth;
-        var y = normalizedX * _screenHeight;
+        var x = normalizedX * _screenWidth;
+        var y = normalizedY * _screenHeight;
 
         if (x >= regionX && x <= (regionX + regionWidth) &&
             y >= regionY && y <= (regionY + regionHeight))
