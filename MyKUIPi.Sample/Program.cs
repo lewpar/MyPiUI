@@ -18,8 +18,8 @@ class Program
             MaxTouchY = 4095,
             
             HideConsoleCaret = true,
-            ShowMetrics = true,
-            ShowDebugUI = true,
+            ShowMetrics = false,
+            ShowDebugUI = false,
             
             BackgroundColor = new Color(220, 220, 220),
             ForegroundColor = Color.Black,
