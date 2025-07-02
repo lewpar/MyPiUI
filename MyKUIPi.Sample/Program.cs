@@ -10,7 +10,7 @@ class Program
     {
         var engine = new MyEngine(new MyEngineOptions()
         {
-            FrameBufferDevice = "/dev/fb1",
+            FrameBufferDevice = "/dev/fb0",
             
             KeyboardDevice = InputDeviceEnumerator.AutoDetectKeyboardDevice(),
             TouchDevice = InputDeviceEnumerator.AutoDetectTouchDevice(),
@@ -24,10 +24,6 @@ class Program
             BackgroundColor = new Color(220, 220, 220),
             ForegroundColor = Color.Black,
         });
-        
-        Console.WriteLine($"Found touch device: {engine.MyOptions.TouchDevice}");
-        Console.WriteLine($"Press Enter to continue..");
-        Console.ReadLine();
         
         engine.Initialize();
         engine.SceneManager.Push(new TestScene()
