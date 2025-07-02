@@ -18,7 +18,7 @@ class Program
             
             HideConsoleCaret = true,
             ShowMetrics = true,
-            ShowDebugUI = false,
+            ShowDebugUI = true,
             
             BackgroundColor = new Color(220, 220, 220),
             ForegroundColor = Color.Black,

@@ -1,4 +1,5 @@
 using System.IO.MemoryMappedFiles;
+
 using MyKUIPi.Primitives;
 
 namespace MyKUIPi.Drawing;
@@ -7,17 +8,17 @@ public class FrameBuffer : IDisposable
 {
     private Rectangle? _clipRect;
     
-    private FrameBufferInfo _frameInfo;
+    private readonly FrameBufferInfo _frameInfo;
     private MyEngineOptions _myOptions;
 
-    private FileStream _frameBufferStream;
-    private MemoryMappedFile _frameBufferMemoryMap;
-    private MemoryMappedViewAccessor _frameBufferAccessor;
+    private readonly FileStream _frameBufferStream;
+    private readonly MemoryMappedFile _frameBufferMemoryMap;
+    private readonly MemoryMappedViewAccessor _frameBufferAccessor;
 
     public List<Rectangle> DirtyRegions { get; }
-    private byte[] _softwareBackBuffer;
-    private int _bytesPerPixel;
-    private bool _is16Bit;
+    private readonly byte[] _softwareBackBuffer;
+    private readonly int _bytesPerPixel;
+    private readonly bool _is16Bit;
 
     public FrameBuffer(FrameBufferInfo frameInfo, MyEngineOptions myOptions)
     {
@@ -394,30 +395,51 @@ public class FrameBuffer : IDisposable
             fontSize = 8;
 
         if (!FrameBufferFont.Basic8x8.TryGetValue(character, out var font))
-        {
             font = FrameBufferFont.Basic8x8[' '];
-        }
 
-        // Calculate the pixel scaling factor based on font size
         float scale = fontSize / 8f;
+        int intScale = (int)scale;
+        int width = _frameInfo.Width;
+        int height = _frameInfo.Height;
+        int pitch = width * _bytesPerPixel;
+        byte[] rawColor = _is16Bit ? Color.To16Bit(color) : Color.ToLittleEndian(color);
 
-        for (int row = 0; row < 8; row++)
+        unsafe
         {
-            byte bits = font[row];
-            for (int col = 0; col < 8; col++)
+            fixed (byte* bufferPtr = _softwareBackBuffer)
+            fixed (byte* colorPtr = rawColor)
             {
-                if ((bits & (1 << (7 - col))) != 0)
+                for (int row = 0; row < 8; row++)
                 {
-                    // Draw a block scaled to the requested font size
-                    int px = x + (int)(col * scale);
-                    int py = y + (int)(row * scale);
+                    byte bits = font[row];
 
-                    // Draw the scaled pixel (as a filled rectangle)
-                    for (int dy = 0; dy < scale; dy++)
+                    for (int col = 0; col < 8; col++)
                     {
-                        for (int dx = 0; dx < scale; dx++)
+                        if ((bits & (1 << (7 - col))) == 0)
+                            continue;
+
+                        int px = x + (int)(col * scale);
+                        int py = y + (int)(row * scale);
+
+                        for (int dy = 0; dy < intScale; dy++)
                         {
-                            DrawPixel(px + dx, py + dy, color);
+                            int dstY = py + dy;
+                            if (dstY < 0 || dstY >= height)
+                                continue;
+
+                            byte* dstRow = bufferPtr + dstY * pitch;
+
+                            for (int dx = 0; dx < intScale; dx++)
+                            {
+                                int dstX = px + dx;
+                                if (dstX < 0 || dstX >= width)
+                                    continue;
+
+                                byte* pixelPtr = dstRow + dstX * _bytesPerPixel;
+
+                                for (int b = 0; b < _bytesPerPixel; b++)
+                                    pixelPtr[b] = colorPtr[b];
+                            }
                         }
                     }
                 }
