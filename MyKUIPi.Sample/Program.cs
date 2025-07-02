@@ -13,7 +13,6 @@ class Program
             FrameBufferDevice = "/dev/fb0",
             
             KeyboardDevice = InputDeviceEnumerator.AutoDetectKeyboardDevice(),
-            MouseDevice = InputDeviceEnumerator.AutoDetectMouseDevice(),
             TouchDevice = InputDeviceEnumerator.AutoDetectTouchDevice(),
             MaxTouchX = 1452,
             MaxTouchY = 912,

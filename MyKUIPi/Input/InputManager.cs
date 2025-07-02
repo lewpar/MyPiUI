@@ -13,24 +13,20 @@ public class InputManager : IDisposable
 
     public InputManager(MyEngineOptions options)
     {
-        if (string.IsNullOrWhiteSpace(options.KeyboardDevice))
+        if (!string.IsNullOrWhiteSpace(options.KeyboardDevice))
         {
-            throw new Exception("Keyboard device not specified.");
+            _keyReader = new KeyboardReader(options.KeyboardDevice);
         }
 
-        if (string.IsNullOrWhiteSpace(options.MouseDevice))
+        if (!string.IsNullOrWhiteSpace(options.MouseDevice))
         {
-            throw new Exception("Mouse device not specified.");
+            _mouseReader = new MouseReader(options.MouseDevice);
         }
 
-        if (string.IsNullOrWhiteSpace(options.TouchDevice))
+        if (!string.IsNullOrWhiteSpace(options.TouchDevice))
         {
-            throw new Exception("Touch device not specified.");
+            _touchReader = new TouchReader(options.TouchDevice, options.MaxTouchX, options.MaxTouchY);
         }
-
-        _keyReader = new KeyboardReader(options.KeyboardDevice);
-        _mouseReader = new MouseReader(options.MouseDevice);
-        _touchReader = new TouchReader(options.TouchDevice, options.MaxTouchX, options.MaxTouchY);
 
         if (Instance is null)
         {
