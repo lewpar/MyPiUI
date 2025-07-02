@@ -54,9 +54,6 @@ public class ButtonElement : UIElement
         set => BackgroundHover = string.IsNullOrWhiteSpace(value) ? Color.SkyBlue : Color.FromHex(value);
     }
     
-    [XmlAttribute("padding")]
-    public int Padding { get; set; }
-    
     private bool _currentTouchState;
     private bool _lastTouchState;
 

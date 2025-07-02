@@ -28,6 +28,9 @@ public abstract class UIElement
     
     [XmlAttribute("height")]
     public int Height { get; set; }
+    
+    [XmlAttribute("padding")]
+    public int Padding { get; set; }
 
     public virtual void Init()
     {

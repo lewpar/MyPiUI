@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Frame xmlns="http://my.kuipi.com/ui"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://my.kuipi.com/ui ui.xsd">
+       xsi:schemaLocation="http://my.kuipi.com/ui ui.xsd"
+        padding="15">
 
-    <StackPanel x="0" y="80" width="1920" height="1000" gap="10" padding="10">
+    <StackPanel gap="10" padding="10">
         <Button text="Switch to Other Scene" handler="open_other" font-size="16" padding="10" />
         <Button text="Meaningless Button" font-size="16" padding="10" />
         <Image source="./UI/Images/logo.png" />

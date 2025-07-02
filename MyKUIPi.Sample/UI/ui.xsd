@@ -8,6 +8,11 @@
             <xs:choice minOccurs="1" maxOccurs="1">
                 <xs:element ref="StackPanel" />
             </xs:choice>
+            
+            <xs:attribute name="width" type="xs:int" />
+            <xs:attribute name="height" type="xs:int" />
+            
+            <xs:attribute name="padding" type="xs:int" />
         </xs:complexType>
     </xs:element>
 
