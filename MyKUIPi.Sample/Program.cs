@@ -20,8 +20,8 @@ class Program
             ShowMetrics = false,
             ShowDebugUI = true,
             
-            BackgroundColor = new Color(220, 220, 220),
-            ForegroundColor = Color.Black,
+            BackgroundColor = Color.Black,
+            ForegroundColor = Color.White,
         });
         
         engine.Initialize();
