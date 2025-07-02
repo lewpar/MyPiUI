@@ -10,7 +10,7 @@ class Program
     {
         var engine = new MyEngine(new MyEngineOptions()
         {
-            FrameBufferDevice = "/dev/fb0",
+            FrameBufferDevice = "/dev/fb1",
             
             KeyboardDevice = InputDeviceEnumerator.AutoDetectKeyboardDevice(),
             TouchDevice = InputDeviceEnumerator.AutoDetectTouchDevice(),
