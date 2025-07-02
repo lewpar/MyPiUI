@@ -36,6 +36,18 @@ public class InputManager : IDisposable
         return _touchReader?.GetTouchState() ?? (0, 0, false);
     }
     
+    public static bool IsTouching()
+    {
+        if (Instance is null)
+        {
+            throw new Exception("Input not initialized.");
+        }
+
+        var (_, _, isTouching) = Instance.GetTouchState();
+        
+        return isTouching;
+    }
+    
     public static bool IsTouching(int regionX, int regionY, int regionWidth, int regionHeight)
     {
         if (Instance is null)
