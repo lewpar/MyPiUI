@@ -62,7 +62,8 @@ public static class InputDeviceEnumerator
             var lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
             foreach (var line in lines)
             {
-                if (line.Contains("E: ID_INPUT_TOUCHPAD=1"))
+                if (line.Contains("E: ID_INPUT_TOUCHPAD=1") ||
+                    line.Contains("E: ID_INPUT_TOUCHSCREEN=1"))
                     info.IsTouchpad = true;
                 if (line.Contains("E: ID_INPUT_KEYBOARD=1"))
                     info.IsKeyboard = true;
