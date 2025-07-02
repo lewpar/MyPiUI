@@ -25,6 +25,10 @@ class Program
             ForegroundColor = Color.Black,
         });
         
+        Console.WriteLine($"Found touch device: {engine.MyOptions.TouchDevice}");
+        Console.WriteLine($"Press Enter to continue..");
+        Console.ReadLine();
+        
         engine.Initialize();
         engine.SceneManager.Push(new TestScene()
         {
