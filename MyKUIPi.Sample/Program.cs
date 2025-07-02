@@ -14,8 +14,8 @@ class Program
             
             KeyboardDevice = InputDeviceEnumerator.AutoDetectKeyboardDevice(),
             TouchDevice = InputDeviceEnumerator.AutoDetectTouchDevice(),
-            MaxTouchX = 480,
-            MaxTouchY = 320,
+            MaxTouchX = 4095,
+            MaxTouchY = 4095,
             
             HideConsoleCaret = true,
             ShowMetrics = true,
