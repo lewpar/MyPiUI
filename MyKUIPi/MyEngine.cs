@@ -157,23 +157,25 @@ public class MyEngine : IDisposable
                 pointConfirmed = false;
             }
 
-            // Draw calibration instruction text
+            // Draw main calibration instruction text
             var fontSize = 25;
             var phase = topLeftComplete ? "Bottom Right" : "Top Left";
             var mainText = $"Touch {phase} - {x:F0}, {y:F0}";
-            var size = MeasureText(mainText, fontSize);
-            _frameBuffer.DrawText((_frameBufferInfo.Width / 2) - (size.X / 2),
-                                  (_frameBufferInfo.Height / 2) - (size.Y / 2),
-                                  mainText, _myOptions.ForegroundColor, fontSize);
+            var mainSize = MeasureText(mainText, fontSize);
+            var mainX = (_frameBufferInfo.Width / 2) - (mainSize.X / 2);
+            var mainY = (_frameBufferInfo.Height / 2) - (mainSize.Y / 2);
 
-            // Show touch duration (if touching)
+            _frameBuffer.DrawText(mainX, mainY, mainText, _myOptions.ForegroundColor, fontSize);
+
+            // Draw hold progress text (if touching)
             if (isTouching)
             {
-                var durationText = $"{Math.Min(heldDuration, targetHoldTimeMs):F0} ms";
-                var durationSize = MeasureText(durationText, fontSize);
-                _frameBuffer.DrawText((int)x - durationSize.X / 2,
-                                      (int)y - 40, // above finger
-                                      durationText, _myOptions.ForegroundColor, fontSize);
+                var holdText = $"Hold: {Math.Min(heldDuration, targetHoldTimeMs):F0} / {targetHoldTimeMs} ms";
+                var holdSize = MeasureText(holdText, fontSize);
+                var holdX = (_frameBufferInfo.Width / 2) - (holdSize.X / 2);
+                var holdY = mainY + mainSize.Y + 10; // 10 pixels below main text
+
+                _frameBuffer.DrawText(holdX, holdY, holdText, _myOptions.ForegroundColor, fontSize);
             }
 
             _frameBuffer.SwapBuffers();
@@ -183,7 +185,7 @@ public class MyEngine : IDisposable
         {
             throw new Exception("Failed to calibrate touch input.");
         }
-        
+
         MaxTouchX = Math.Abs(topLeft.X - bottomRight.X);
         MaxTouchY = Math.Abs(topLeft.Y - bottomRight.Y);
     }
