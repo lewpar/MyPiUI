@@ -27,14 +27,20 @@ public class MyEngine : IDisposable
 
     public FrameBufferInfo? FrameBufferInfo { get => _frameBufferInfo; }
     private FrameBufferInfo? _frameBufferInfo;
+    
+    public int MinTouchX { get; private set; }
+    public int MaxTouchX { get; private set; }
+    public int MinTouchY { get; private set; }
+    public int MaxTouchY { get; private set; }
 
     private long _deltaTimeMs;
     private Stopwatch _deltaTimer;
 
-    private Vector2 _mouseCursorPosition;
     private Vector2 _touchCursorPosition;
 
     private RenderTimingMetrics? _drawMetrics;
+
+    private bool _isCalibratingTouch;
 
     public MyEngine(MyEngineOptions myOptions)
     {
@@ -42,7 +48,6 @@ public class MyEngine : IDisposable
         _sceneManager = new SceneManager();
         _inputManager = new InputManager(myOptions);
         _deltaTimer = new Stopwatch();
-        _mouseCursorPosition = new Vector2(0, 0);
         _touchCursorPosition = new Vector2(0, 0);
 
         if (Instance is null)
@@ -58,9 +63,9 @@ public class MyEngine : IDisposable
             throw new Exception($"Failed to find frame buffer at path '{MyOptions.FrameBufferDevice}'.");
         }
 
-        if (!File.Exists(MyOptions.KeyboardDevice))
+        if (!File.Exists(MyOptions.TouchDevice))
         {
-            throw new Exception($"Failed to find input device at path '{MyOptions.KeyboardDevice}'.");
+            throw new Exception($"Failed to find touch input device at path '{MyOptions.TouchDevice}'.");
         }
 
         var frameBufferInfo = GetFrameBufferInfo();
@@ -83,13 +88,112 @@ public class MyEngine : IDisposable
         }
 
         _inputManager.Initialize(_frameBufferInfo.Width, _frameBufferInfo.Height);
-
-        _mouseCursorPosition = new Vector2((int)(_frameBufferInfo.Width / 2), 
-                                            (int)(_frameBufferInfo.Height / 2));
         
         _frameBuffer.Clear(_myOptions.BackgroundColor);
     }
+    
+    private Point MeasureText(string text, int fontSize)
+    {
+        var textWidth = text.Length * fontSize;
+        var textHeight = fontSize;
+        
+        return new Point(textWidth, textHeight);
+    }
 
+    public void CalibrateTouch()
+    {
+        if (_frameBuffer is null || _frameBufferInfo is null)
+        {
+            throw new Exception("Frame buffer not initialized. Ensure touch calibration is called after engine initialization and before render loop.");
+        }
+
+        _isCalibratingTouch = true;
+        bool topLeftComplete = false;
+        bool pointConfirmed = false;
+
+        var targetHoldTimeMs = 5000;
+        var holdStartTime = DateTime.MinValue;
+
+        Point? topLeft = null;
+        Point? bottomRight = null;
+
+        while (_isCalibratingTouch)
+        {
+            foreach (var dirtyRegion in _frameBuffer.DirtyRegions)
+            {
+                _frameBuffer.Clear(_myOptions.BackgroundColor, dirtyRegion);
+            }
+            _frameBuffer.DirtyRegions.Clear();
+
+            var (x, y, isTouching) = _inputManager.GetAbsTouchState();
+            double heldDuration = 0;
+
+            if (isTouching)
+            {
+                if (holdStartTime == DateTime.MinValue)
+                    holdStartTime = DateTime.UtcNow;
+
+                heldDuration = (DateTime.UtcNow - holdStartTime).TotalMilliseconds;
+
+                if (heldDuration >= targetHoldTimeMs && !pointConfirmed)
+                {
+                    if (!topLeftComplete)
+                    {
+                        topLeft = new Point((int)x, (int)y);
+                        topLeftComplete = true;
+                    }
+                    else
+                    {
+                        bottomRight = new Point((int)x, (int)y);
+                        _isCalibratingTouch = false;
+                    }
+
+                    holdStartTime = DateTime.MinValue;
+                    pointConfirmed = false;
+                    continue;
+                }
+            }
+            else
+            {
+                holdStartTime = DateTime.MinValue;
+                pointConfirmed = false;
+            }
+
+            // Draw main calibration instruction text
+            var fontSize = 25;
+            var phase = topLeftComplete ? "Bottom Right" : "Top Left";
+            var mainText = $"Touch {phase} - {x:F0}, {y:F0}";
+            var mainSize = MeasureText(mainText, fontSize);
+            var mainX = (_frameBufferInfo.Width / 2) - (mainSize.X / 2);
+            var mainY = (_frameBufferInfo.Height / 2) - (mainSize.Y / 2);
+
+            _frameBuffer.DrawText(mainX, mainY, mainText, _myOptions.ForegroundColor, fontSize);
+
+            // Draw hold progress text (if touching)
+            if (isTouching)
+            {
+                var holdText = $"Hold: {Math.Min(heldDuration, targetHoldTimeMs):F0} / {targetHoldTimeMs} ms";
+                var holdSize = MeasureText(holdText, fontSize);
+                var holdX = (_frameBufferInfo.Width / 2) - (holdSize.X / 2);
+                var holdY = mainY + mainSize.Y + 10; // 10 pixels below main text
+
+                _frameBuffer.DrawText(holdX, holdY, holdText, _myOptions.ForegroundColor, fontSize);
+            }
+
+            _frameBuffer.SwapBuffers();
+        }
+
+        if (topLeft is null || bottomRight is null)
+        {
+            throw new Exception("Failed to calibrate touch input.");
+        }
+
+        MinTouchX = Math.Min(topLeft.X, bottomRight.X);
+        MaxTouchX = Math.Max(topLeft.X, bottomRight.X);
+        MinTouchY = Math.Min(topLeft.Y, bottomRight.Y);
+        MaxTouchY = Math.Max(topLeft.Y, bottomRight.Y);
+    }
+    
     private static FrameBufferInfo? GetFrameBufferInfo()
     {
         try
@@ -180,7 +284,7 @@ public class MyEngine : IDisposable
         }
         
         int x = 15, y = 15, lineHeight = 12;
-        int totalHeight = lineHeight * 10 + lineHeight;
+        int totalHeight = lineHeight * 9 + lineHeight;
         int totalWidth = 8 * 20;
         var color = _myOptions.ForegroundColor;
 
@@ -191,58 +295,9 @@ public class MyEngine : IDisposable
         _frameBuffer.DrawText(x, y, $"UI: {_drawMetrics.UIDrawTime:F2} ms", color); y += lineHeight;
         _frameBuffer.DrawText(x, y, $"Debug UI: {_drawMetrics.DebugUIDrawTime:F2} ms", color); y += lineHeight;
         _frameBuffer.DrawText(x, y, $"Metrics: {_drawMetrics.MetricsTime:F2} ms", color); y += lineHeight;
-        _frameBuffer.DrawText(x, y, $"Mouse: {_drawMetrics.MouseTime:F2} ms", color); y += lineHeight;
         _frameBuffer.DrawText(x, y, $"Touch: {_drawMetrics.TouchTime:F2} ms", color); y += lineHeight;
         _frameBuffer.DrawText(x, y, $"Swap: {_drawMetrics.SwapTime:F2} ms", color); y += lineHeight;
         _frameBuffer.DrawText(x, y, $"Total: {_drawMetrics.TotalDrawTime:F2} ms", color);
-    }
-
-    private void UpdateMousePosition()
-    {
-        if (_frameBufferInfo is null)
-        {
-            return;
-        }
-
-        var (dx, dy, _) = _inputManager.GetMouseDelta();
-
-        var newMouseX = _mouseCursorPosition.X + dx;
-        var newMouseY = _mouseCursorPosition.Y + dy;
-
-        if (newMouseX <= 0)
-        {
-            newMouseX = 0;
-        }
-        
-        if (newMouseX >= _frameBufferInfo.Width)
-        {
-            newMouseX = _frameBufferInfo.Width;
-        }
-
-        if (newMouseY <= 0)
-        {
-            newMouseY = 0;
-        }
-
-        if (newMouseY >= _frameBufferInfo.Height)
-        {
-            newMouseY = _frameBufferInfo.Height;
-        }
-
-        _mouseCursorPosition = new Vector2(newMouseX, newMouseY);
-    }
-
-    private void RenderMouseCursor()
-    {
-        if (_frameBuffer is null)
-        {
-            return;
-        }
-
-        _frameBuffer.FillTriangle(new Vector2(_mouseCursorPosition.X, _mouseCursorPosition.Y),
-                                    new Vector2(_mouseCursorPosition.X + 8, _mouseCursorPosition.Y + 5),
-                                    new Vector2(_mouseCursorPosition.X + 2, _mouseCursorPosition.Y + 10),
-                                    Color.Red);
     }
 
     private void UpdateTouchPosition()
@@ -303,11 +358,10 @@ public class MyEngine : IDisposable
         SceneManager.CurrentScene.Update(_deltaTimeMs);
         SceneManager.CurrentScene.UIFrame?.Update(_deltaTimeMs);
 
-        if (!string.IsNullOrWhiteSpace(_myOptions.MouseDevice))
-            UpdateMousePosition();
-
         if (!string.IsNullOrWhiteSpace(_myOptions.TouchDevice))
+        {
             UpdateTouchPosition();
+        }
     }
 
     public void Draw()
@@ -363,14 +417,6 @@ public class MyEngine : IDisposable
         }
         metricsTimer.Stop();
 
-        // Mouse Cursor
-        var mouseTimer = Stopwatch.StartNew();
-        if (!string.IsNullOrWhiteSpace(_myOptions.MouseDevice))
-        {
-            RenderMouseCursor();
-        }
-        mouseTimer.Stop();
-
         // Touch Cursor
         var touchTimer = Stopwatch.StartNew();
         if (!string.IsNullOrWhiteSpace(_myOptions.TouchDevice))
@@ -393,7 +439,6 @@ public class MyEngine : IDisposable
             UIDrawTime = uiDrawTimer.Elapsed.TotalMilliseconds,
             DebugUIDrawTime = debugUIDrawTimer.Elapsed.TotalMilliseconds,
             MetricsTime = metricsTimer.Elapsed.TotalMilliseconds,
-            MouseTime = mouseTimer.Elapsed.TotalMilliseconds,
             TouchTime = touchTimer.Elapsed.TotalMilliseconds,
             SwapTime = swapTimer.Elapsed.TotalMilliseconds,
             TotalDrawTime = totalTimer.Elapsed.TotalMilliseconds,

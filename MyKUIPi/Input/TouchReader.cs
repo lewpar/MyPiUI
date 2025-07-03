@@ -15,9 +15,6 @@ public class TouchReader : InputDeviceReader<TouchReader.InputEvent>
 
     private const ushort BTN_TOUCH = 0x14a;
 
-    private readonly int _maxTouchX;
-    private readonly int _maxTouchY;
-
     public int TouchX { get; private set; }
     public int TouchY { get; private set; }
     public bool IsTouching { get; private set; }
@@ -38,10 +35,8 @@ public class TouchReader : InputDeviceReader<TouchReader.InputEvent>
         public long TvUsec;
     }
 
-    public TouchReader(string devicePath, int maxTouchX, int maxTouchY) : base(devicePath)
+    public TouchReader(string devicePath) : base(devicePath)
     {
-        _maxTouchX = maxTouchX;
-        _maxTouchY = maxTouchY;
     }
 
     protected override void OnInputEvent(InputEvent inputEvent)
@@ -69,11 +64,37 @@ public class TouchReader : InputDeviceReader<TouchReader.InputEvent>
 
     public (float normX, float normY, bool isTouching) GetTouchState()
     {
+        if (MyEngine.Instance is null)
+        {
+            throw new NullReferenceException("MyEngine Instance is null.");
+        }
+
         lock (LockObject)
         {
-            float normX = Math.Clamp((float)TouchX / _maxTouchX, 0f, 1f);
-            float normY = Math.Clamp((float)TouchY / _maxTouchY, 0f, 1f);
+            var engine = MyEngine.Instance;
+
+            // Prevent divide-by-zero in case of calibration error
+            float rangeX = engine.MaxTouchX - engine.MinTouchX;
+            float rangeY = engine.MaxTouchY - engine.MinTouchY;
+
+            if (rangeX <= 0 || rangeY <= 0)
+            {
+                return (0f, 0f, IsTouching); // fallback if calibration is invalid
+            }
+
+            float normX = Math.Clamp((float)(TouchX - engine.MinTouchX) / rangeX, 0f, 1f);
+            float normY = Math.Clamp((float)(TouchY - engine.MinTouchY) / rangeY, 0f, 1f);
+
             return (normX, normY, IsTouching);
+        }
+    }
+
+
+    public (float x, float y, bool isTouching) GetAbsTouchState()
+    {
+        lock (LockObject)
+        {
+            return (TouchX, TouchY, IsTouching);
         }
     }
 }

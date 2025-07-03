@@ -9,9 +9,6 @@ public class StackPanelElement : UIElement
     [XmlAttribute("orientation")]
     public int Orientation { get; set; }
     
-    [XmlAttribute("padding")]
-    public int Padding { get; set; }
-    
     [XmlAttribute("gap")]
     public int Gap { get; set; }
 

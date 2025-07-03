@@ -8,24 +8,25 @@ class Program
 {
     static void Main()
     {
+        Console.WriteLine("Initializing MyKUIPi Engine..");
         var engine = new MyEngine(new MyEngineOptions()
         {
             FrameBufferDevice = "/dev/fb0",
             
-            KeyboardDevice = InputDeviceEnumerator.AutoDetectKeyboardDevice(),
             TouchDevice = InputDeviceEnumerator.AutoDetectTouchDevice(),
-            MaxTouchX = 1452,
-            MaxTouchY = 912,
             
             HideConsoleCaret = true,
             ShowMetrics = true,
             ShowDebugUI = true,
             
-            BackgroundColor = new Color(220, 220, 220),
-            ForegroundColor = Color.Black,
+            BackgroundColor = Color.Black,
+            ForegroundColor = Color.White,
         });
         
         engine.Initialize();
+        engine.CalibrateTouch();
+        
+        Console.WriteLine("Loading TestScene..");
         engine.SceneManager.Push(new TestScene()
         {
             UI = "./UI/TestScene.xml"

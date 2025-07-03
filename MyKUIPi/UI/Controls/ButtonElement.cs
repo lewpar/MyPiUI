@@ -54,11 +54,8 @@ public class ButtonElement : UIElement
         set => BackgroundHover = string.IsNullOrWhiteSpace(value) ? Color.SkyBlue : Color.FromHex(value);
     }
     
-    [XmlAttribute("padding")]
-    public int Padding { get; set; }
-    
     private bool _currentTouchState;
-    private bool _lastTouchState;
+    private bool _wasTouchingScreenLastFrame;
 
     [XmlAttribute("handler")]
     public string? HandlerName { get; set; }
@@ -81,18 +78,22 @@ public class ButtonElement : UIElement
         Width = (Width > 0 ? Width : MeasureText(FontSize, Text ?? "")) + (Padding * 2);
         Height = FontSize + (Padding * 2);
     }
-
+    
     public override void Update(float deltaTimeMs)
     {
+        bool isScreenTouched = InputManager.IsTouching();
         _currentTouchState = InputManager.IsTouching(X, Y, Width, Height);
-        
-        if (_lastTouchState && !_currentTouchState)
+
+        // Only trigger if:
+        // - The screen was *not* touched last frame
+        // - AND it's now being touched *inside* this button
+        if (!_wasTouchingScreenLastFrame && _currentTouchState)
         {
             OnTouch();
         }
-        
-        _lastTouchState = _currentTouchState;
-        
+
+        _wasTouchingScreenLastFrame = isScreenTouched;
+
         base.Update(deltaTimeMs);
     }
 
