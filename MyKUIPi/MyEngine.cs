@@ -28,7 +28,9 @@ public class MyEngine : IDisposable
     public FrameBufferInfo? FrameBufferInfo { get => _frameBufferInfo; }
     private FrameBufferInfo? _frameBufferInfo;
     
+    public int MinTouchX { get; private set; }
     public int MaxTouchX { get; private set; }
+    public int MinTouchY { get; private set; }
     public int MaxTouchY { get; private set; }
 
     private long _deltaTimeMs;
@@ -186,8 +188,10 @@ public class MyEngine : IDisposable
             throw new Exception("Failed to calibrate touch input.");
         }
 
-        MaxTouchX = Math.Abs(topLeft.X - bottomRight.X);
-        MaxTouchY = Math.Abs(topLeft.Y - bottomRight.Y);
+        MinTouchX = Math.Min(topLeft.X, bottomRight.X);
+        MaxTouchX = Math.Max(topLeft.X, bottomRight.X);
+        MinTouchY = Math.Min(topLeft.Y, bottomRight.Y);
+        MaxTouchY = Math.Max(topLeft.Y, bottomRight.Y);
     }
     
     private static FrameBufferInfo? GetFrameBufferInfo()

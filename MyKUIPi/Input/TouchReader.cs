@@ -68,14 +68,27 @@ public class TouchReader : InputDeviceReader<TouchReader.InputEvent>
         {
             throw new NullReferenceException("MyEngine Instance is null.");
         }
-        
+
         lock (LockObject)
         {
-            float normX = Math.Clamp((float)TouchX / MyEngine.Instance.MaxTouchX, 0f, 1f);
-            float normY = Math.Clamp((float)TouchY / MyEngine.Instance.MaxTouchY, 0f, 1f);
+            var engine = MyEngine.Instance;
+
+            // Prevent divide-by-zero in case of calibration error
+            float rangeX = engine.MaxTouchX - engine.MinTouchX;
+            float rangeY = engine.MaxTouchY - engine.MinTouchY;
+
+            if (rangeX <= 0 || rangeY <= 0)
+            {
+                return (0f, 0f, IsTouching); // fallback if calibration is invalid
+            }
+
+            float normX = Math.Clamp((float)(TouchX - engine.MinTouchX) / rangeX, 0f, 1f);
+            float normY = Math.Clamp((float)(TouchY - engine.MinTouchY) / rangeY, 0f, 1f);
+
             return (normX, normY, IsTouching);
         }
     }
+
 
     public (float x, float y, bool isTouching) GetAbsTouchState()
     {
