@@ -8,6 +8,7 @@ class Program
 {
     static void Main()
     {
+        Console.WriteLine("Initializing MyKUIPi Engine..");
         var engine = new MyEngine(new MyEngineOptions()
         {
             FrameBufferDevice = "/dev/fb0",
@@ -17,7 +18,7 @@ class Program
             MaxTouchY = 4095,
             
             HideConsoleCaret = true,
-            ShowMetrics = false,
+            ShowMetrics = true,
             ShowDebugUI = true,
             
             BackgroundColor = Color.Black,
@@ -25,6 +26,8 @@ class Program
         });
         
         engine.Initialize();
+        
+        Console.WriteLine("Loading TestScene..");
         engine.SceneManager.Push(new TestScene()
         {
             UI = "./UI/TestScene.xml"
