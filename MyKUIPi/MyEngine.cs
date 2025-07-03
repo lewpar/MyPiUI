@@ -450,5 +450,8 @@ public class MyEngine : IDisposable
     {
         _inputManager?.Dispose();
         _frameBuffer?.Dispose();
+        
+        // Un-hide console cursor
+        Console.Write("\x1b[?25h");
     }
 }

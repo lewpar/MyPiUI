@@ -16,7 +16,7 @@ class Program
             TouchDevice = InputDeviceEnumerator.AutoDetectTouchDevice(),
             
             HideConsoleCaret = true,
-            ShowMetrics = true,
+            ShowMetrics = false,
             ShowDebugUI = true,
             
             BackgroundColor = Color.Black,
@@ -24,7 +24,7 @@ class Program
         });
         
         engine.Initialize();
-        engine.CalibrateTouch();
+        //engine.CalibrateTouch();
         
         Console.WriteLine("Loading TestScene..");
         engine.SceneManager.Push(new TestScene()
@@ -46,5 +46,7 @@ class Program
             engine.Update();
             engine.Draw();
         }
+        
+        engine.Dispose();
     }
 }

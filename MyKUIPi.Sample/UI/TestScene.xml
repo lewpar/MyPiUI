@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Frame xmlns="http://my.kuipi.com/ui"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://my.kuipi.com/ui ui.xsd"
-        padding="15">
-
-    <StackPanel gap="10" padding="10">
-        <Button text="Switch to Other Scene" handler="open_other" font-size="16" padding="10" />
-        <Button text="Meaningless Button" font-size="16" padding="10" />
-        <Image source="./UI/Images/logo.png" />
-    </StackPanel>
-
+       xsi:schemaLocation="http://my.kuipi.com/ui ui.xsd">
+    <Absolute>
+        <Button x="10" y="10" width="48" height="48" handler="open_other">
+            <Image source="./UI/Images/icon-small.png" />
+        </Button>
+        
+        <Button x="10" y="100" width="200" height="100" text="Hello World" />
+    </Absolute>
 </Frame>

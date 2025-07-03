@@ -62,6 +62,8 @@ public class ButtonElement : UIElement
     
     [XmlIgnore]
     public Action? Handler { get; set; }
+    
+    private ImageElement? _image;
 
     public void OnTouch()
     {
@@ -76,7 +78,22 @@ public class ButtonElement : UIElement
     public override void Init()
     {
         Width = (Width > 0 ? Width : MeasureText(FontSize, Text ?? "")) + (Padding * 2);
-        Height = FontSize + (Padding * 2);
+        Height = (Height > 0  ? Height : FontSize) + (Padding * 2);
+
+        if (Children.Count > 0)
+        {
+            var child = Children[0];
+            if (child is ImageElement image)
+            {
+                image.X = X + Padding; 
+                image.Y = Y + Padding;
+                
+                image.Width = Width - (Padding * 2);
+                image.Height = Height - (Padding * 2);
+                
+                _image = image;
+            }
+        }
     }
     
     public override void Update(float deltaTimeMs)
@@ -99,11 +116,23 @@ public class ButtonElement : UIElement
 
     public override void Draw(FrameBuffer buffer)
     {
+        buffer.SetClip(new Rectangle(X, Y, Width, Height));
+        
         buffer.FillRect(X, Y, Width, Height, _currentTouchState ? BackgroundHover : Background);
+
+        if (_image is not null)
+        {
+            _image.Draw(buffer);
+        }
 
         if (!string.IsNullOrWhiteSpace(Text))
         {
-            buffer.DrawText(X + Padding, Y + Padding, Text, Foreground, FontSize);   
+            var textWidth = MeasureText(FontSize, Text);
+            var posX = X + (Width - textWidth) / 2;
+            var posY = Y + (Height - FontSize) / 2;
+            buffer.DrawText(posX, posY, Text, Foreground, FontSize);
         }
+        
+        buffer.ClearClip();
     }
 }

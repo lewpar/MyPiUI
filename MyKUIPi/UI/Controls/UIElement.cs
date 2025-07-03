@@ -8,6 +8,7 @@ namespace MyKUIPi.UI.Controls;
 public abstract class UIElement
 {
     [XmlElement("Grid", typeof(GridElement))]
+    [XmlElement("Absolute", typeof(AbsoluteElement))]
     [XmlElement("Rectangle", typeof(RectangleElement))]
     [XmlElement("Button", typeof(ButtonElement))]
     [XmlElement("StackPanel", typeof(StackPanelElement))]

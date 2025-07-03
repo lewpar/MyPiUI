@@ -48,6 +48,11 @@ public class FrameBuffer : IDisposable
     {
         _clipRect = null;
     }
+    
+    private bool IsWithinClip(int x, int y)
+    {
+        return _clipRect is null || _clipRect.Value.ContainsPoint(x, y);
+    }
 
     public void Clear(Color color, Rectangle rect)
     {
@@ -151,6 +156,9 @@ public class FrameBuffer : IDisposable
                     {
                         int destX = x + px;
                         if (destX < 0 || destX >= frameWidth)
+                            continue;
+                        
+                        if (!IsWithinClip(destX, destY)) 
                             continue;
 
                         int srcIndex = (py * imgWidth + px) * (depth / 8);
@@ -462,6 +470,9 @@ public class FrameBuffer : IDisposable
                             {
                                 int dstX = px + dx;
                                 if (dstX < 0 || dstX >= width)
+                                    continue;
+                                
+                                if (!IsWithinClip(dstX, dstY)) 
                                     continue;
 
                                 byte* pixelPtr = dstRow + dstX * _bytesPerPixel;
