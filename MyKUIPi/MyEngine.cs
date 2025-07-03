@@ -109,7 +109,7 @@ public class MyEngine : IDisposable
         bool topLeftComplete = false;
         bool pointConfirmed = false;
 
-        var targetHoldTimeMs = 500;
+        var targetHoldTimeMs = 5000;
         var holdStartTime = DateTime.MinValue;
 
         Point? topLeft = null;
