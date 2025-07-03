@@ -64,6 +64,11 @@ public class TouchReader : InputDeviceReader<TouchReader.InputEvent>
 
     public (float normX, float normY, bool isTouching) GetTouchState()
     {
+        if (MyEngine.Instance is null)
+        {
+            throw new NullReferenceException("MyEngine Instance is null.");
+        }
+        
         lock (LockObject)
         {
             float normX = Math.Clamp((float)TouchX / MyEngine.Instance.MaxTouchX, 0f, 1f);
