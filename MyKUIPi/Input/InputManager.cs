@@ -13,7 +13,7 @@ public class InputManager : IDisposable
     {
         if (!string.IsNullOrWhiteSpace(options.TouchDevice))
         {
-            _touchReader = new TouchReader(options.TouchDevice, options.MaxTouchX, options.MaxTouchY);
+            _touchReader = new TouchReader(options.TouchDevice);
         }
 
         if (Instance is null)
@@ -34,6 +34,11 @@ public class InputManager : IDisposable
     public (float normX, float normY, bool isTouching) GetTouchState()
     {
         return _touchReader?.GetTouchState() ?? (0, 0, false);
+    }
+
+    public (float x, float y, bool isTouching) GetAbsTouchState()
+    {
+        return _touchReader?.GetAbsTouchState() ?? (0, 0, false);
     }
     
     public static bool IsTouching()

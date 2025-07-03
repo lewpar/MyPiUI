@@ -14,8 +14,6 @@ class Program
             FrameBufferDevice = "/dev/fb0",
             
             TouchDevice = InputDeviceEnumerator.AutoDetectTouchDevice(),
-            MaxTouchX = 4095,
-            MaxTouchY = 4095,
             
             HideConsoleCaret = true,
             ShowMetrics = true,
@@ -26,6 +24,7 @@ class Program
         });
         
         engine.Initialize();
+        engine.CalibrateTouch();
         
         Console.WriteLine("Loading TestScene..");
         engine.SceneManager.Push(new TestScene()

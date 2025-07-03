@@ -15,9 +15,6 @@ public class TouchReader : InputDeviceReader<TouchReader.InputEvent>
 
     private const ushort BTN_TOUCH = 0x14a;
 
-    private readonly int _maxTouchX;
-    private readonly int _maxTouchY;
-
     public int TouchX { get; private set; }
     public int TouchY { get; private set; }
     public bool IsTouching { get; private set; }
@@ -38,10 +35,8 @@ public class TouchReader : InputDeviceReader<TouchReader.InputEvent>
         public long TvUsec;
     }
 
-    public TouchReader(string devicePath, int maxTouchX, int maxTouchY) : base(devicePath)
+    public TouchReader(string devicePath) : base(devicePath)
     {
-        _maxTouchX = maxTouchX;
-        _maxTouchY = maxTouchY;
     }
 
     protected override void OnInputEvent(InputEvent inputEvent)
@@ -71,9 +66,17 @@ public class TouchReader : InputDeviceReader<TouchReader.InputEvent>
     {
         lock (LockObject)
         {
-            float normX = Math.Clamp((float)TouchX / _maxTouchX, 0f, 1f);
-            float normY = Math.Clamp((float)TouchY / _maxTouchY, 0f, 1f);
+            float normX = Math.Clamp((float)TouchX / MyEngine.Instance.MaxTouchX, 0f, 1f);
+            float normY = Math.Clamp((float)TouchY / MyEngine.Instance.MaxTouchY, 0f, 1f);
             return (normX, normY, IsTouching);
+        }
+    }
+
+    public (float x, float y, bool isTouching) GetAbsTouchState()
+    {
+        lock (LockObject)
+        {
+            return (TouchX, TouchY, IsTouching);
         }
     }
 }

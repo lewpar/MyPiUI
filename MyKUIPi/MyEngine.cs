@@ -27,6 +27,9 @@ public class MyEngine : IDisposable
 
     public FrameBufferInfo? FrameBufferInfo { get => _frameBufferInfo; }
     private FrameBufferInfo? _frameBufferInfo;
+    
+    public int MaxTouchX { get; private set; }
+    public int MaxTouchY { get; private set; }
 
     private long _deltaTimeMs;
     private Stopwatch _deltaTimer;
@@ -34,6 +37,8 @@ public class MyEngine : IDisposable
     private Vector2 _touchCursorPosition;
 
     private RenderTimingMetrics? _drawMetrics;
+
+    private bool _isCalibratingTouch;
 
     public MyEngine(MyEngineOptions myOptions)
     {
@@ -84,7 +89,107 @@ public class MyEngine : IDisposable
         
         _frameBuffer.Clear(_myOptions.BackgroundColor);
     }
+    
+    private Point MeasureText(string text, int fontSize)
+    {
+        var textWidth = text.Length * fontSize;
+        var textHeight = fontSize;
+        
+        return new Point(textWidth, textHeight);
+    }
 
+    public void CalibrateTouch()
+    {
+        if (_frameBuffer is null || _frameBufferInfo is null)
+        {
+            throw new Exception("Frame buffer not initialized. Ensure touch calibration is called after engine initialization and before render loop.");
+        }
+
+        _isCalibratingTouch = true;
+        bool topLeftComplete = false;
+        bool pointConfirmed = false;
+
+        var targetHoldTimeMs = 500;
+        var holdStartTime = DateTime.MinValue;
+
+        Point? topLeft = null;
+        Point? bottomRight = null;
+
+        while (_isCalibratingTouch)
+        {
+            foreach (var dirtyRegion in _frameBuffer.DirtyRegions)
+            {
+                _frameBuffer.Clear(_myOptions.BackgroundColor, dirtyRegion);
+            }
+            _frameBuffer.DirtyRegions.Clear();
+
+            var (x, y, isTouching) = _inputManager.GetAbsTouchState();
+            double heldDuration = 0;
+
+            if (isTouching)
+            {
+                if (holdStartTime == DateTime.MinValue)
+                    holdStartTime = DateTime.UtcNow;
+
+                heldDuration = (DateTime.UtcNow - holdStartTime).TotalMilliseconds;
+
+                if (heldDuration >= targetHoldTimeMs && !pointConfirmed)
+                {
+                    pointConfirmed = true;
+
+                    if (!topLeftComplete)
+                    {
+                        topLeft = new Point((int)x, (int)y);
+                        topLeftComplete = true;
+                    }
+                    else
+                    {
+                        bottomRight = new Point((int)x, (int)y);
+                        _isCalibratingTouch = false;
+                    }
+
+                    holdStartTime = DateTime.MinValue;
+                    pointConfirmed = false;
+                    continue;
+                }
+            }
+            else
+            {
+                holdStartTime = DateTime.MinValue;
+                pointConfirmed = false;
+            }
+
+            // Draw calibration instruction text
+            var fontSize = 25;
+            var phase = topLeftComplete ? "Bottom Right" : "Top Left";
+            var mainText = $"Touch {phase} - {x:F0}, {y:F0}";
+            var size = MeasureText(mainText, fontSize);
+            _frameBuffer.DrawText((_frameBufferInfo.Width / 2) - (size.X / 2),
+                                  (_frameBufferInfo.Height / 2) - (size.Y / 2),
+                                  mainText, _myOptions.ForegroundColor, fontSize);
+
+            // Show touch duration (if touching)
+            if (isTouching)
+            {
+                var durationText = $"{Math.Min(heldDuration, targetHoldTimeMs):F0} ms";
+                var durationSize = MeasureText(durationText, fontSize);
+                _frameBuffer.DrawText((int)x - durationSize.X / 2,
+                                      (int)y - 40, // above finger
+                                      durationText, _myOptions.ForegroundColor, fontSize);
+            }
+
+            _frameBuffer.SwapBuffers();
+        }
+
+        if (topLeft is null || bottomRight is null)
+        {
+            throw new Exception("Failed to calibrate touch input.");
+        }
+        
+        MaxTouchX = Math.Abs(topLeft.X - bottomRight.X);
+        MaxTouchY = Math.Abs(topLeft.Y - bottomRight.Y);
+    }
+    
     private static FrameBufferInfo? GetFrameBufferInfo()
     {
         try
