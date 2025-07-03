@@ -135,8 +135,6 @@ public class MyEngine : IDisposable
 
                 if (heldDuration >= targetHoldTimeMs && !pointConfirmed)
                 {
-                    pointConfirmed = true;
-
                     if (!topLeftComplete)
                     {
                         topLeft = new Point((int)x, (int)y);
