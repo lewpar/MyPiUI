@@ -1,5 +1,6 @@
 using MyKUIPi.Scene;
 using MyKUIPi.UI.Attributes;
+using MyKUIPi.UI.DataBinding;
 
 namespace MyKUIPi.Sample.Scenes;
 
@@ -18,5 +19,15 @@ public class TestScene : MyScene
         {
             UI = "UI/OtherScene.xml"
         });
+    }
+ 
+    [BindableProperty("current_time")]
+    private readonly BindableProperty<string> _currentTime = new BindableProperty<string>();
+
+    public override void Update(float deltaTimeMs)
+    {
+        _currentTime.Value = DateTime.Now.ToString("HH:mm:ss");
+        
+        base.Update(deltaTimeMs);
     }
 }
