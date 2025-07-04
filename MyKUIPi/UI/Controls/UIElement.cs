@@ -13,6 +13,7 @@ public abstract class UIElement
     [XmlElement("Button", typeof(ButtonElement))]
     [XmlElement("StackPanel", typeof(StackPanelElement))]
     [XmlElement("Image", typeof(ImageElement))]
+    [XmlElement("TextArea", typeof(TextAreaElement))]
     public List<UIElement> Children { get; } = new List<UIElement>();
     
     [XmlIgnore]

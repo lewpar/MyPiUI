@@ -16,5 +16,7 @@
         <Button x="10" y="130" width="40" height="40" background="#404040" background-hover="#000000">
             <Image source="./UI/Images/gear.png" />
         </Button>
+        
+        <TextArea text="Hello, world." foreground="#ffffff" x="0" y="190" />
     </Absolute>
 </Frame>
