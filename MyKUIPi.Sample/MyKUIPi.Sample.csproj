@@ -39,6 +39,10 @@
       <Content Include="UI\Images\icon-small.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
+      <None Remove="UI\Images\home.png" />
+      <Content Include="UI\Images\home.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
     <ItemGroup>

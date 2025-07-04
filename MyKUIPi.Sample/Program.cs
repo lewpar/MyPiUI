@@ -17,14 +17,14 @@ class Program
             
             HideConsoleCaret = true,
             ShowMetrics = false,
-            ShowDebugUI = true,
+            ShowDebugUI = false,
             
             BackgroundColor = Color.Black,
             ForegroundColor = Color.White,
         });
         
         engine.Initialize();
-        engine.CalibrateTouch();
+        //engine.CalibrateTouch();
         
         Console.WriteLine("Loading TestScene..");
         engine.SceneManager.Push(new TestScene()
@@ -47,6 +47,6 @@ class Program
             engine.Draw();
         }
         
-        engine.Dispose();
+        //engine.Dispose();
     }
 }

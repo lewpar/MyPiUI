@@ -85,11 +85,8 @@ public class ButtonElement : UIElement
             var child = Children[0];
             if (child is ImageElement image)
             {
-                image.X = X + Padding; 
-                image.Y = Y + Padding;
-                
-                image.Width = Width - (Padding * 2);
-                image.Height = Height - (Padding * 2);
+                image.X = X + (Width / 2) - (image.Width / 2); 
+                image.Y = Y + (Height / 2) - (image.Height / 2);
                 
                 _image = image;
             }
@@ -118,7 +115,7 @@ public class ButtonElement : UIElement
     {
         buffer.SetClip(new Rectangle(X, Y, Width, Height));
         
-        buffer.FillRect(X, Y, Width, Height, _currentTouchState ? BackgroundHover : Background);
+        buffer.FillRect(X, Y, Width, Height, _currentTouchState ? BackgroundHover : Background, 5);
 
         if (_image is not null)
         {

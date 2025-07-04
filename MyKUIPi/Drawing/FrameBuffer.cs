@@ -354,15 +354,23 @@ public class FrameBuffer : IDisposable
         DirtyRegions.Add(new Rectangle(x + width - borderWidth, y + borderWidth, borderWidth, height - 2 * borderWidth)); // Right border
     }
 
-    private void FillRectNoDirty(int x, int y, int width, int height, Color color)
+   private void FillRectNoDirty(int x, int y, int width, int height, Color color, int cornerRadius = 0)
     {
         int x0 = Math.Max(0, x);
         int y0 = Math.Max(0, y);
         int x1 = Math.Min(_frameInfo.Width, x + width);
         int y1 = Math.Min(_frameInfo.Height, y + height);
 
-        byte[] rawColor = _is16Bit ? Color.To16Bit(color) : Color.ToLittleEndian(color);
+        if (cornerRadius <= 0)
+        {
+            cornerRadius = 0;
+        }
+        else
+        {
+            cornerRadius = Math.Min(cornerRadius, Math.Min(width, height) / 2);
+        }
 
+        byte[] rawColor = _is16Bit ? Color.To16Bit(color) : Color.ToLittleEndian(color);
         int pitch = _frameInfo.Width * _bytesPerPixel;
 
         unsafe
@@ -372,15 +380,49 @@ public class FrameBuffer : IDisposable
             {
                 for (int py = y0; py < y1; py++)
                 {
-                    byte* row = bufferPtr + (py * pitch) + (x0 * _bytesPerPixel);
-
                     for (int px = x0; px < x1; px++)
                     {
-                        for (int b = 0; b < _bytesPerPixel; b++)
+                        bool drawPixel = true;
+
+                        // Rounded corners logic
+                        if (cornerRadius > 0)
                         {
-                            row[b] = colorPtr[b];
+                            int relX = px - x;
+                            int relY = py - y;
+
+                            if (relX < cornerRadius && relY < cornerRadius) // top-left
+                            {
+                                drawPixel = ((relX - cornerRadius) * (relX - cornerRadius) +
+                                             (relY - cornerRadius) * (relY - cornerRadius)) <= cornerRadius * cornerRadius;
+                            }
+                            else if (relX >= width - cornerRadius && relY < cornerRadius) // top-right
+                            {
+                                int dx = relX - (width - cornerRadius - 1);
+                                drawPixel = ((dx) * (dx) +
+                                             (relY - cornerRadius) * (relY - cornerRadius)) <= cornerRadius * cornerRadius;
+                            }
+                            else if (relX < cornerRadius && relY >= height - cornerRadius) // bottom-left
+                            {
+                                int dy = relY - (height - cornerRadius - 1);
+                                drawPixel = ((relX - cornerRadius) * (relX - cornerRadius) +
+                                             (dy) * (dy)) <= cornerRadius * cornerRadius;
+                            }
+                            else if (relX >= width - cornerRadius && relY >= height - cornerRadius) // bottom-right
+                            {
+                                int dx = relX - (width - cornerRadius - 1);
+                                int dy = relY - (height - cornerRadius - 1);
+                                drawPixel = ((dx) * (dx) + (dy) * (dy)) <= cornerRadius * cornerRadius;
+                            }
                         }
-                        row += _bytesPerPixel;
+
+                        if (drawPixel)
+                        {
+                            byte* row = bufferPtr + (py * pitch) + (px * _bytesPerPixel);
+                            for (int b = 0; b < _bytesPerPixel; b++)
+                            {
+                                row[b] = colorPtr[b];
+                            }
+                        }
                     }
                 }
             }
@@ -416,9 +458,9 @@ public class FrameBuffer : IDisposable
         }
     }
 
-    public void FillRect(int x, int y, int width, int height, Color color)
+    public void FillRect(int x, int y, int width, int height, Color color, int cornerRadius = 0)
     {
-        FillRectNoDirty(x, y, width, height, color);
+        FillRectNoDirty(x, y, width, height, color, cornerRadius);
         DirtyRegions.Add(new Rectangle(x, y, width, height));
     }
     public void FillRect(Rectangle rect, Color color)
