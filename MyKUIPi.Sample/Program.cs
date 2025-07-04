@@ -27,9 +27,9 @@ class Program
         engine.CalibrateTouch();
         
         Console.WriteLine("Loading TestScene..");
-        engine.SceneManager.Push(new SettingsScene()
+        engine.SceneManager.Push(new TestScene()
         {
-            UI = "./UI/SettingsScene.xml"
+            UI = "./UI/TestScene.xml"
         });
         
         bool isRunning = true;
