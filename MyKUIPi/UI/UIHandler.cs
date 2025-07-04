@@ -51,12 +51,12 @@ public class UIHandler
         button.Handler = (Action)method.CreateDelegate(typeof(Action), scene);
     }
     
-    private static readonly Dictionary<TextAreaElement, object> _bindings = new();
+    private static readonly Dictionary<TextAreaElement, object> TextAreaBindings = new();
 
     
     private static void OnBindableChanged<T>(T newValue)
     {
-        foreach (var pair in _bindings)
+        foreach (var pair in TextAreaBindings)
         {
             if (pair.Value is BindableProperty<T> bindable && EqualityComparer<T>.Default.Equals(bindable.Value, newValue))
             {
@@ -118,7 +118,7 @@ public class UIHandler
             eventInfo.AddEventHandler(bindableObj, handlerDelegate);
 
             // Store textArea so handler knows where to update
-            _bindings[textArea] = bindableObj;
+            TextAreaBindings[textArea] = bindableObj;
         }
     }
 
