@@ -3,7 +3,7 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://my.kuipi.com/ui ui.xsd">
     <Absolute>
-        <Button x="10" y="10" width="48" height="48" handler="open_other">
+        <Button x="10" y="10" width="48" height="48" handler="open_other" background="#000000">
             <Image source="./UI/Images/icon-small.png" />
         </Button>
         
