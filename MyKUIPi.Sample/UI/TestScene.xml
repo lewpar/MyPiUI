@@ -13,7 +13,7 @@
             <Image source="./UI/Images/clock.png" />
         </Button>
 
-        <Button x="10" y="130" width="40" height="40" background="#404040" background-hover="#000000">
+        <Button x="10" y="130" width="40" height="40" background="#404040" background-hover="#000000" handler="open_settings">
             <Image source="./UI/Images/gear.png" />
         </Button>
         

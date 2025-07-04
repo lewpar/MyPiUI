@@ -51,6 +51,10 @@
       <Content Include="UI\Images\gear.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
+      <None Remove="UI\SettingsScene.xml" />
+      <Content Include="UI\SettingsScene.xml">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
     <ItemGroup>

@@ -107,7 +107,7 @@
             <xs:attribute name="handler" type="xs:string" />
 
             <xs:attribute name="text" type="xs:string" />
-            <xs:attribute name="font-size" type="xs:int" />
+            <xs:attribute name="font-size" type="xs:int" default="12" />
 
             <xs:attribute name="background" type="xs:string" default="#1e90ff" />
             <xs:attribute name="background-hover" type="xs:string" default="#4ba6ff" />

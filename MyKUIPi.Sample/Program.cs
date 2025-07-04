@@ -17,19 +17,19 @@ class Program
             
             HideConsoleCaret = true,
             ShowMetrics = false,
-            ShowDebugUI = false,
+            ShowDebugUI = true,
             
             BackgroundColor = Color.Black,
             ForegroundColor = Color.White,
         });
         
         engine.Initialize();
-        //engine.CalibrateTouch();
+        engine.CalibrateTouch();
         
         Console.WriteLine("Loading TestScene..");
-        engine.SceneManager.Push(new TestScene()
+        engine.SceneManager.Push(new SettingsScene()
         {
-            UI = "./UI/TestScene.xml"
+            UI = "./UI/SettingsScene.xml"
         });
         
         bool isRunning = true;

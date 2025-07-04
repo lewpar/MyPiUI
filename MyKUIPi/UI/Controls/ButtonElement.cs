@@ -11,8 +11,8 @@ public class ButtonElement : UIElement
 {
     [XmlAttribute("text")]
     public string? Text { get; set; }
-    
-    [XmlAttribute("font-size")]
+
+    [XmlAttribute("font-size")] 
     public int FontSize { get; set; }
 
     [XmlAttribute("border-size")]
@@ -107,8 +107,9 @@ public class ButtonElement : UIElement
         if (!string.IsNullOrWhiteSpace(Text))
         {
             var textWidth = MeasureText(FontSize, Text);
-            var posX = X + (Width - textWidth) / 2;
-            var posY = Y + (Height - FontSize) / 2;
+            var posX = X + (Width / 2) - (textWidth / 2);
+            var posY = Y + (Height / 2) - (FontSize / 2);
+            
             buffer.DrawText(posX, posY, Text, Foreground, FontSize);
         }
         

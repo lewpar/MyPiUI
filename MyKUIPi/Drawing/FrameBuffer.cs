@@ -477,7 +477,6 @@ public class FrameBuffer : IDisposable
             font = FrameBufferFont.Basic8x8[' '];
 
         float scale = fontSize / 8f;
-        int intScale = (int)scale;
         int width = _frameInfo.Width;
         int height = _frameInfo.Height;
         int pitch = width * _bytesPerPixel;
@@ -497,28 +496,29 @@ public class FrameBuffer : IDisposable
                         if ((bits & (1 << (7 - col))) == 0)
                             continue;
 
-                        int px = x + (int)(col * scale);
-                        int py = y + (int)(row * scale);
+                        // Compute floating point bounds
+                        float fx0 = x + col * scale;
+                        float fy0 = y + row * scale;
+                        float fx1 = x + (col + 1) * scale;
+                        float fy1 = y + (row + 1) * scale;
 
-                        for (int dy = 0; dy < intScale; dy++)
+                        int ix0 = (int)Math.Floor(fx0);
+                        int iy0 = (int)Math.Floor(fy0);
+                        int ix1 = (int)Math.Ceiling(fx1);
+                        int iy1 = (int)Math.Ceiling(fy1);
+
+                        for (int py = iy0; py < iy1; py++)
                         {
-                            int dstY = py + dy;
-                            if (dstY < 0 || dstY >= height)
-                                continue;
+                            if (py < 0 || py >= height) continue;
 
-                            byte* dstRow = bufferPtr + dstY * pitch;
+                            byte* dstRow = bufferPtr + py * pitch;
 
-                            for (int dx = 0; dx < intScale; dx++)
+                            for (int px = ix0; px < ix1; px++)
                             {
-                                int dstX = px + dx;
-                                if (dstX < 0 || dstX >= width)
-                                    continue;
-                                
-                                if (!IsWithinClip(dstX, dstY)) 
-                                    continue;
+                                if (px < 0 || px >= width) continue;
+                                if (!IsWithinClip(px, py)) continue;
 
-                                byte* pixelPtr = dstRow + dstX * _bytesPerPixel;
-
+                                byte* pixelPtr = dstRow + px * _bytesPerPixel;
                                 for (int b = 0; b < _bytesPerPixel; b++)
                                     pixelPtr[b] = colorPtr[b];
                             }
@@ -528,7 +528,7 @@ public class FrameBuffer : IDisposable
             }
         }
     }
-
+    
     public void DrawText(int x, int y, string text, Color color, int fontSize = 8)
     {
         if (fontSize < 8)

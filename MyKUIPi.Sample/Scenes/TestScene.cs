@@ -20,6 +20,21 @@ public class TestScene : MyScene
             UI = "UI/OtherScene.xml"
         });
     }
+    
+    [ButtonHandler("open_settings")]
+    private void OpenSettingsScene()
+    {
+        var sceneManager = SceneManager.Instance;
+        if (sceneManager is null)
+        {
+            return;
+        }
+        
+        sceneManager.Push(new SettingsScene()
+        {
+            UI = "UI/SettingsScene.xml"
+        });
+    }
  
     [BindableProperty("current_time")]
     private readonly BindableProperty<string> _currentTime = new BindableProperty<string>();
