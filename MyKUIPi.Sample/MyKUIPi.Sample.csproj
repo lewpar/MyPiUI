@@ -43,6 +43,14 @@
       <Content Include="UI\Images\home.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
+      <None Remove="UI\Images\clock.png" />
+      <Content Include="UI\Images\clock.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <None Remove="UI\Images\gear.png" />
+      <Content Include="UI\Images\gear.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
     <ItemGroup>

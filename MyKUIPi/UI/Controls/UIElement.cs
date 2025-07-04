@@ -32,6 +32,24 @@ public abstract class UIElement
     
     [XmlAttribute("padding")]
     public int Padding { get; set; }
+    
+    public Color Foreground { get; set; }
+
+    [XmlAttribute("foreground")]
+    public string ForegroundHex
+    {
+        get => Color.ToHex(Foreground);
+        set => Foreground = string.IsNullOrWhiteSpace(value) ? Color.White : Color.FromHex(value);
+    }
+    
+    public Color Background { get; set; }
+
+    [XmlAttribute("background")]
+    public string BackgroundHex
+    {
+        get => Color.ToHex(Background);
+        set => Background = string.IsNullOrWhiteSpace(value) ? Color.DodgerBlue : Color.FromHex(value);
+    }
 
     public virtual void Init()
     {

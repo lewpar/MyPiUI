@@ -3,10 +3,18 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://my.kuipi.com/ui ui.xsd">
     <Absolute>
-        <Button x="10" y="10" width="40" height="40" handler="open_other" background="#404040" background-hover="#000000">
+        <Rectangle x="0" y="0" width="800" height="480" />
+        
+        <Button x="10" y="10" width="40" height="40" background="#404040" background-hover="#000000">
             <Image source="./UI/Images/home.png" />
         </Button>
-        
-        <Button x="10" y="100" width="200" height="100" text="Hello World" />
+
+        <Button x="10" y="70" width="40" height="40" background="#404040" background-hover="#000000">
+            <Image source="./UI/Images/clock.png" />
+        </Button>
+
+        <Button x="10" y="130" width="40" height="40" background="#404040" background-hover="#000000">
+            <Image source="./UI/Images/gear.png" />
+        </Button>
     </Absolute>
 </Frame>

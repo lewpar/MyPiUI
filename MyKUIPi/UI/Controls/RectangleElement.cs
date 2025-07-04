@@ -9,6 +9,6 @@ public class RectangleElement : UIElement
 {
     public override void Draw(FrameBuffer buffer)
     {
-        buffer.FillRect(X, Y, Width, Height, Color.White);
+        buffer.FillRect(X, Y, Width, Height, Background);
     }
 }

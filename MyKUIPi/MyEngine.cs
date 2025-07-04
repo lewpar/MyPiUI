@@ -284,7 +284,7 @@ public class MyEngine : IDisposable
         }
         
         int x = 15, y = 15, lineHeight = 12;
-        int totalHeight = lineHeight * 9 + lineHeight;
+        int totalHeight = lineHeight * 8 + lineHeight;
         int totalWidth = 8 * 20;
         var color = _myOptions.ForegroundColor;
 
@@ -295,7 +295,6 @@ public class MyEngine : IDisposable
         _frameBuffer.DrawText(x, y, $"UI: {_drawMetrics.UIDrawTime:F2} ms", color); y += lineHeight;
         _frameBuffer.DrawText(x, y, $"Debug UI: {_drawMetrics.DebugUIDrawTime:F2} ms", color); y += lineHeight;
         _frameBuffer.DrawText(x, y, $"Metrics: {_drawMetrics.MetricsTime:F2} ms", color); y += lineHeight;
-        _frameBuffer.DrawText(x, y, $"Touch: {_drawMetrics.TouchTime:F2} ms", color); y += lineHeight;
         _frameBuffer.DrawText(x, y, $"Swap: {_drawMetrics.SwapTime:F2} ms", color); y += lineHeight;
         _frameBuffer.DrawText(x, y, $"Total: {_drawMetrics.TotalDrawTime:F2} ms", color);
     }
@@ -418,12 +417,11 @@ public class MyEngine : IDisposable
         metricsTimer.Stop();
 
         // Touch Cursor
-        var touchTimer = Stopwatch.StartNew();
-        if (!string.IsNullOrWhiteSpace(_myOptions.TouchDevice))
+        if (_myOptions.ShowDebugUI && 
+            !string.IsNullOrWhiteSpace(_myOptions.TouchDevice))
         {
             RenderTouchCursor();
         }
-        touchTimer.Stop();
 
         // Swap Buffers
         var swapTimer = Stopwatch.StartNew();
@@ -439,11 +437,9 @@ public class MyEngine : IDisposable
             UIDrawTime = uiDrawTimer.Elapsed.TotalMilliseconds,
             DebugUIDrawTime = debugUIDrawTimer.Elapsed.TotalMilliseconds,
             MetricsTime = metricsTimer.Elapsed.TotalMilliseconds,
-            TouchTime = touchTimer.Elapsed.TotalMilliseconds,
             SwapTime = swapTimer.Elapsed.TotalMilliseconds,
             TotalDrawTime = totalTimer.Elapsed.TotalMilliseconds,
         };
-
     }
     
     public void Dispose()
