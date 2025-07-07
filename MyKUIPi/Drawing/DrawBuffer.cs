@@ -331,76 +331,88 @@ public class DrawBuffer
     /// <param name="borderColor">The color of the outline</param>
     public void DrawRect(int x, int y, int width, int height, int borderWidth, Color borderColor)
     {
-        if (borderWidth < 1)
+        if (borderWidth < 1) return;
+        if (borderWidth > 10) borderWidth = 10;
+
+        byte[] rawColor = GetRawColor(borderColor);
+        int pitch = _width * _bytesPerPixel;
+
+        int x0 = Math.Max(0, x);
+        int y0 = Math.Max(0, y);
+        int x1 = Math.Min(_width, x + width);
+        int y1 = Math.Min(_height, y + height);
+
+        unsafe
         {
-            return;
+            fixed (byte* bufferPtr = _backBuffer)
+            fixed (byte* colorPtr = rawColor)
+            {
+                for (int i = 0; i < borderWidth; i++)
+                {
+                    int topY = y + i;
+                    int bottomY = y + height - 1 - i;
+                    int leftX = x + i;
+                    int rightX = x + width - 1 - i;
+
+                    // Top border
+                    if (topY >= 0 && topY < _height)
+                    {
+                        byte* rowPtr = bufferPtr + topY * pitch;
+                        for (int px = leftX; px <= rightX; px++)
+                        {
+                            if (px < 0 || px >= _width) continue;
+                            byte* pixel = rowPtr + px * _bytesPerPixel;
+                            for (int b = 0; b < _bytesPerPixel; b++)
+                                pixel[b] = colorPtr[b];
+                        }
+                    }
+
+                    // Bottom border
+                    if (bottomY != topY && bottomY >= 0 && bottomY < _height)
+                    {
+                        byte* rowPtr = bufferPtr + bottomY * pitch;
+                        for (int px = leftX; px <= rightX; px++)
+                        {
+                            if (px < 0 || px >= _width) continue;
+                            byte* pixel = rowPtr + px * _bytesPerPixel;
+                            for (int b = 0; b < _bytesPerPixel; b++)
+                                pixel[b] = colorPtr[b];
+                        }
+                    }
+
+                    // Left & right borders
+                    for (int py = topY; py <= bottomY; py++)
+                    {
+                        if (py < 0 || py >= _height) continue;
+                        byte* rowPtr = bufferPtr + py * pitch;
+
+                        // Left border
+                        if (leftX >= 0 && leftX < _width)
+                        {
+                            byte* pixel = rowPtr + leftX * _bytesPerPixel;
+                            for (int b = 0; b < _bytesPerPixel; b++)
+                                pixel[b] = colorPtr[b];
+                        }
+
+                        // Right border
+                        if (rightX != leftX && rightX >= 0 && rightX < _width)
+                        {
+                            byte* pixel = rowPtr + rightX * _bytesPerPixel;
+                            for (int b = 0; b < _bytesPerPixel; b++)
+                                pixel[b] = colorPtr[b];
+                        }
+                    }
+                }
+            }
         }
 
-        if (borderWidth > 10)
-        {
-            borderWidth = 10;
-        }
-
-        for (int i = 0; i < borderWidth; i++)
-        {
-            int topY = y + i;
-            int bottomY = y + height - 1 - i;
-            int leftX = x + i;
-            int rightX = x + width - 1 - i;
-
-            // Draw top horizontal line
-            if (topY >= 0 && topY < _height)
-            {
-                for (int px = leftX; px <= rightX; px++)
-                {
-                    if (px < 0 || px >= _width) continue;
-                    DrawPixel(px, topY, borderColor);
-                }
-            }
-
-            // Draw bottom horizontal line (if different from top)
-            if (bottomY != topY && bottomY >= 0 && bottomY < _height)
-            {
-                for (int px = leftX; px <= rightX; px++)
-                {
-                    if (px < 0 || px >= _width) continue;
-                    DrawPixel(px, bottomY, borderColor);
-                }
-            }
-
-            // Draw left vertical line
-            if (leftX >= 0 && leftX < _width)
-            {
-                for (int py = topY; py <= bottomY; py++)
-                {
-                    if (py < 0 || py >= _height) continue;
-                    DrawPixel(leftX, py, borderColor);
-                }
-            }
-
-            // Draw right vertical line (if different from left)
-            if (rightX != leftX && rightX >= 0 && rightX < _width)
-            {
-                for (int py = topY; py <= bottomY; py++)
-                {
-                    if (py < 0 || py >= _height) continue;
-                    DrawPixel(rightX, py, borderColor);
-                }
-            }
-        }
-        
-        // Top border
-        _dirtyRegions.Add(new Rectangle(x, y, width, borderWidth));
-        
-        // Bottom border
-        _dirtyRegions.Add(new Rectangle(x, y + height - borderWidth, width, borderWidth));
-        
-        // Left border
-        _dirtyRegions.Add(new Rectangle(x, y + borderWidth, borderWidth, height - 2 * borderWidth));
-        
-        // Right border
-        _dirtyRegions.Add(new Rectangle(x + width - borderWidth, y + borderWidth, borderWidth, height - 2 * borderWidth));
+        // Track dirty regions
+        _dirtyRegions.Add(new Rectangle(x, y, width, borderWidth)); // Top
+        _dirtyRegions.Add(new Rectangle(x, y + height - borderWidth, width, borderWidth)); // Bottom
+        _dirtyRegions.Add(new Rectangle(x, y + borderWidth, borderWidth, height - 2 * borderWidth)); // Left
+        _dirtyRegions.Add(new Rectangle(x + width - borderWidth, y + borderWidth, borderWidth, height - 2 * borderWidth)); // Right
     }
+
     
     /// <summary>
     /// Fills a rectangle on the screen.

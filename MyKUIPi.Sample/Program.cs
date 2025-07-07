@@ -31,7 +31,7 @@ class Program
         });
         
         engine.Initialize();
-        engine.CalibrateTouch();
+        //engine.CalibrateTouch();
         
         Console.WriteLine("Loading TestScene..");
         engine.SceneManager.Push(new TestScene()
