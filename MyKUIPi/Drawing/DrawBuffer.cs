@@ -337,11 +337,6 @@ public class DrawBuffer
         byte[] rawColor = GetRawColor(borderColor);
         int pitch = _width * _bytesPerPixel;
 
-        int x0 = Math.Max(0, x);
-        int y0 = Math.Max(0, y);
-        int x1 = Math.Min(_width, x + width);
-        int y1 = Math.Min(_height, y + height);
-
         unsafe
         {
             fixed (byte* bufferPtr = _backBuffer)
