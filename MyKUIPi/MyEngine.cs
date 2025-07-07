@@ -193,11 +193,6 @@ public class MyEngine : IDisposable
 
     private void RenderMetrics()
     {
-        if (_drawBuffer is null)
-        {
-            return;
-        }
-
         if (_drawMetrics is null)
         {
             return;
@@ -352,6 +347,6 @@ public class MyEngine : IDisposable
     
     public void Dispose()
     {
-        _inputManager?.Dispose();
+        _inputManager.Dispose();
     }
 }
