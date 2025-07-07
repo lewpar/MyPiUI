@@ -40,12 +40,22 @@ public struct Color
         return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
     }
     
-    public static byte[] ToLittleEndian(byte r, byte g, byte b)
+    public static byte[] ToRGBA(byte r, byte g, byte b)
+    {
+        return new byte[] { r, g, b, 255 /* UNUSED ALPHA CHANNEL */ };
+    }
+    
+    public static byte[] ToRGBA(Color color)
+    {
+        return new byte[] { color.R, color.G, color.B, 255 /* UNUSED ALPHA CHANNEL */ };
+    }
+    
+    public static byte[] ToBGRA(byte r, byte g, byte b)
     {
         return new byte[] { b, g, r, 255 /* UNUSED ALPHA CHANNEL */ };
     }
     
-    public static byte[] ToLittleEndian(Color color)
+    public static byte[] ToBGRA(Color color)
     {
         return new byte[] { color.B, color.G, color.R, 255 /* UNUSED ALPHA CHANNEL */ };
     }

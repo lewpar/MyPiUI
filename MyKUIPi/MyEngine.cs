@@ -41,6 +41,8 @@ public class MyEngine : IDisposable
     private RenderTimingMetrics? _drawMetrics;
 
     private bool _isCalibratingTouch;
+    
+    private RaylibRenderer? raylibRenderer;
 
     public MyEngine(MyEngineOptions myOptions)
     {
@@ -58,9 +60,12 @@ public class MyEngine : IDisposable
 
     public void Initialize()
     {
-        if (!File.Exists(MyOptions.FrameBufferDevice))
+        if (_myOptions.RenderMode == RenderMode.FrameBuffer)
         {
-            throw new Exception($"Failed to find frame buffer at path '{MyOptions.FrameBufferDevice}'.");
+            if (!File.Exists(MyOptions.FrameBufferDevice))
+            {
+                throw new Exception($"Failed to find frame buffer at path '{MyOptions.FrameBufferDevice}'.");
+            }    
         }
 
         if (!File.Exists(MyOptions.TouchDevice))
@@ -68,13 +73,29 @@ public class MyEngine : IDisposable
             throw new Exception($"Failed to find touch input device at path '{MyOptions.TouchDevice}'.");
         }
 
-        var frameBufferInfo = GetFrameBufferInfo();
+        FrameBufferInfo? frameBufferInfo = null;
+
+        if (_myOptions.RenderMode == RenderMode.FrameBuffer)
+        {
+            frameBufferInfo = GetFrameBufferInfo();
+        }
+        else
+        {
+            frameBufferInfo = new FrameBufferInfo()
+            {
+                Depth = 32,
+                Height = 1080,
+                Width = 1920
+            };
+        }
+        
         if (frameBufferInfo is null)
         {
-            throw new Exception("Failed to get frame buffer information from 'fbset'.");
+            throw new Exception("Failed to get frame buffer information.");
         }
 
-        if (frameBufferInfo.Depth != 16 && frameBufferInfo.Depth != 32)
+        if (frameBufferInfo.Depth != 16 && 
+            frameBufferInfo.Depth != 32)
         {
             throw new Exception($"Unsupported color depth: {frameBufferInfo.Depth}-bit. Only 16-bit and 32-bit are supported.");
         }
@@ -90,6 +111,11 @@ public class MyEngine : IDisposable
         _inputManager.Initialize(_frameBufferInfo.Width, _frameBufferInfo.Height);
         
         _frameBuffer.Clear(_myOptions.BackgroundColor);
+
+        if (_myOptions.RenderMode == RenderMode.Raylib)
+        {
+            raylibRenderer = new RaylibRenderer(_frameBufferInfo.Width, _frameBufferInfo.Height, _frameBufferInfo.Depth / 8);
+        }
     }
     
     private Point MeasureText(string text, int fontSize)
@@ -100,7 +126,7 @@ public class MyEngine : IDisposable
         return new Point(textWidth, textHeight);
     }
 
-    public void CalibrateTouch()
+    public void CalibrateTouch(int holdTime = 3500)
     {
         if (_frameBuffer is null || _frameBufferInfo is null)
         {
@@ -111,7 +137,7 @@ public class MyEngine : IDisposable
         bool topLeftComplete = false;
         bool pointConfirmed = false;
 
-        var targetHoldTimeMs = 5000;
+        var targetHoldTimeMs = holdTime;
         var holdStartTime = DateTime.MinValue;
 
         Point? topLeft = null;
@@ -179,8 +205,16 @@ public class MyEngine : IDisposable
 
                 _frameBuffer.DrawText(holdX, holdY, holdText, _myOptions.ForegroundColor, fontSize);
             }
-
-            _frameBuffer.SwapBuffers();
+            
+            if (_myOptions.RenderMode == RenderMode.Raylib 
+                && raylibRenderer is not null)
+            {
+                raylibRenderer.Draw(_frameBuffer.GetBuffer());
+            }
+            else
+            {
+                _frameBuffer.SwapBuffers();
+            }
         }
 
         if (topLeft is null || bottomRight is null)
@@ -427,7 +461,16 @@ public class MyEngine : IDisposable
 
         // Swap Buffers
         var swapTimer = Stopwatch.StartNew();
-        _frameBuffer.SwapBuffers();
+
+        if (_myOptions.RenderMode == RenderMode.FrameBuffer)
+        {
+            _frameBuffer.SwapBuffers();
+        }
+        else
+        {
+            raylibRenderer?.Draw(_frameBuffer.GetBuffer());
+        }
+
         swapTimer.Stop();
 
         totalTimer.Stop();
@@ -443,7 +486,6 @@ public class MyEngine : IDisposable
             SwapTime = swapTimer.Elapsed.TotalMilliseconds,
             TotalDrawTime = totalTimer.Elapsed.TotalMilliseconds,
         };
-
     }
     
     public void Dispose()

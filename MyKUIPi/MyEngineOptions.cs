@@ -1,3 +1,4 @@
+using MyKUIPi.Drawing;
 using MyKUIPi.Primitives;
 
 namespace MyKUIPi;
@@ -11,4 +12,5 @@ public class MyEngineOptions
     public bool HideConsoleCaret { get; init; }
     public Color BackgroundColor { get; init; } = Color.Black;
     public Color ForegroundColor { get; init; } = Color.White;
+    public RenderMode RenderMode { get; init; } = RenderMode.FrameBuffer;
 }

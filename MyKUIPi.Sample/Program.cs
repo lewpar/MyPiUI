@@ -1,4 +1,5 @@
-﻿using MyKUIPi.Input;
+﻿using MyKUIPi.Drawing;
+using MyKUIPi.Input;
 using MyKUIPi.Primitives;
 using MyKUIPi.Sample.Scenes;
 
@@ -21,6 +22,8 @@ class Program
             
             BackgroundColor = Color.Black,
             ForegroundColor = Color.White,
+            
+            RenderMode = RenderMode.Raylib
         });
         
         engine.Initialize();

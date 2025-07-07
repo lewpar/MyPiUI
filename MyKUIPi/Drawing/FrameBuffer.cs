@@ -31,12 +31,23 @@ public class FrameBuffer : IDisposable
 
         var frameBufferSize = frameInfo.Width * frameInfo.VirtualHeight * _bytesPerPixel;
 
-        _frameBufferStream = new FileStream(myOptions.FrameBufferDevice, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
-        _frameBufferMemoryMap = MemoryMappedFile.CreateFromFile(_frameBufferStream, null, frameBufferSize, MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, false);
-        _frameBufferAccessor = _frameBufferMemoryMap.CreateViewAccessor(0, frameBufferSize, MemoryMappedFileAccess.Write);
+        if (myOptions.RenderMode == RenderMode.FrameBuffer)
+        {
+            _frameBufferStream = new FileStream(myOptions.FrameBufferDevice, FileMode.Open, FileAccess.ReadWrite,
+                FileShare.ReadWrite);
+            _frameBufferMemoryMap = MemoryMappedFile.CreateFromFile(_frameBufferStream, null, frameBufferSize,
+                MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, false);
+            _frameBufferAccessor =
+                _frameBufferMemoryMap.CreateViewAccessor(0, frameBufferSize, MemoryMappedFileAccess.Write);
+        }
 
         DirtyRegions = new List<Rectangle>();
         _softwareBackBuffer = new byte[_frameInfo.Width * _frameInfo.Height * _bytesPerPixel];
+    }
+
+    public byte[] GetBuffer()
+    {
+        return _softwareBackBuffer;
     }
 
     public void SetClip(Rectangle clipRect)
@@ -56,9 +67,7 @@ public class FrameBuffer : IDisposable
         int x1 = Math.Min(_frameInfo.Width, rect.X + rect.Width);
         int y1 = Math.Min(_frameInfo.Height, rect.Y + rect.Height);
 
-        byte[] rawColor = _is16Bit
-            ? Color.To16Bit(color)
-            : Color.ToLittleEndian(color);
+        byte[] rawColor = GetRawColor(color);
 
         int pitch = _frameInfo.Width * _bytesPerPixel;
 
@@ -81,11 +90,23 @@ public class FrameBuffer : IDisposable
         }
     }
 
+    private byte[] GetRawColor(Color color)
+    {
+        return GetRawColor(color.R, color.G, color.B);
+    }
+    
+    private byte[] GetRawColor(byte r, byte g, byte b)
+    {
+        return _is16Bit ?
+            Color.To16Bit(r, g, b) :
+            (_myOptions.RenderMode == RenderMode.Raylib ? 
+                Color.ToRGBA(r, g, b) : 
+                Color.ToBGRA(r, g, b));
+    }
+
     public void Clear(Color color)
     {
-        var rawColor = _is16Bit ?
-            Color.To16Bit(color) :
-            Color.ToLittleEndian(color);
+        var rawColor = GetRawColor(color);
 
         for (int i = 0; i < _softwareBackBuffer.Length; i += _bytesPerPixel)
         {
@@ -104,7 +125,7 @@ public class FrameBuffer : IDisposable
         if (_clipRect is not null && !_clipRect.Value.ContainsPoint(x, y))
             return;
 
-        var rawColor = _is16Bit ? Color.To16Bit(r, g, b) : Color.ToLittleEndian(r, g, b);
+        var rawColor = GetRawColor(r, g, b);
         int pixelOffset = (y * _frameInfo.Width + x) * _bytesPerPixel;
 
         unsafe
@@ -166,9 +187,18 @@ public class FrameBuffer : IDisposable
                         }
                         else if (depth == 32)
                         {
-                            b = pixelData[srcIndex + 0];
-                            g = pixelData[srcIndex + 1];
-                            r = pixelData[srcIndex + 2];
+                            if (_myOptions.RenderMode == RenderMode.Raylib)
+                            {
+                                r = pixelData[srcIndex + 0];
+                                g = pixelData[srcIndex + 1];
+                                b = pixelData[srcIndex + 2];
+                            }
+                            else
+                            {
+                                b = pixelData[srcIndex + 0];
+                                g = pixelData[srcIndex + 1];
+                                r = pixelData[srcIndex + 2];   
+                            }
                         }
                         else
                         {
@@ -353,7 +383,7 @@ public class FrameBuffer : IDisposable
         int x1 = Math.Min(_frameInfo.Width, x + width);
         int y1 = Math.Min(_frameInfo.Height, y + height);
 
-        byte[] rawColor = _is16Bit ? Color.To16Bit(color) : Color.ToLittleEndian(color);
+        byte[] rawColor = GetRawColor(color);
 
         int pitch = _frameInfo.Width * _bytesPerPixel;
 
@@ -431,7 +461,7 @@ public class FrameBuffer : IDisposable
         int width = _frameInfo.Width;
         int height = _frameInfo.Height;
         int pitch = width * _bytesPerPixel;
-        byte[] rawColor = _is16Bit ? Color.To16Bit(color) : Color.ToLittleEndian(color);
+        byte[] rawColor = GetRawColor(color);
 
         unsafe
         {
