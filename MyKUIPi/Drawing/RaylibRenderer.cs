@@ -45,6 +45,23 @@ public class RaylibRenderer : IDisposable
         if (framebuffer.Length != _width * _height * _bpp)
             throw new ArgumentException("Framebuffer size does not match dimensions.");
 
+        // Update root ui frame when the screen resizes
+        if (Raylib.IsWindowResized())
+        {
+            var uiFrame = MyEngine.Instance?.SceneManager?.CurrentScene?.UIFrame ?? null;
+            if (uiFrame is not null)
+            {
+                uiFrame.Height = Raylib.GetRenderHeight();
+                uiFrame.Width = Raylib.GetRenderWidth();
+                uiFrame.Init();   
+            }
+        }
+
+        if (Raylib.WindowShouldClose())
+        {
+            Raylib.CloseWindow();
+        }
+
         unsafe
         {
             fixed (byte* fbPtr = framebuffer)
