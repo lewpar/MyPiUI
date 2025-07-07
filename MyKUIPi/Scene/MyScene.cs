@@ -11,6 +11,6 @@ public class MyScene
     public string? UI { get; set; }
     public FrameElement? UIFrame { get; set; }
 
-    public virtual void Draw(FrameBuffer buffer) { }
+    public virtual void Draw(DrawBuffer buffer) { }
     public virtual void Update(float deltaTimeMs) { }
 }

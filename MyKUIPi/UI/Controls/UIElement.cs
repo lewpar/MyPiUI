@@ -40,7 +40,7 @@ public abstract class UIElement
         }
     }
 
-    public virtual void Draw(FrameBuffer buffer)
+    public virtual void Draw(DrawBuffer buffer)
     {
         foreach (var child in Children)
         {

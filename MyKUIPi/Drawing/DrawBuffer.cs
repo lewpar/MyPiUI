@@ -1,0 +1,612 @@
+using MyKUIPi.Primitives;
+
+namespace MyKUIPi.Drawing;
+
+public class DrawBuffer
+{
+    private readonly int _width;
+    private readonly int _height;
+    
+    private readonly MyPixelFormat _myPixelFormat;
+    
+    private readonly int _bitsPerPixel;
+    private readonly int _bytesPerPixel;
+    
+    private byte[] _backBuffer;
+    
+    private List<Rectangle> _dirtyRegions { get; }
+    
+    private Color _clearColor;
+    
+    private Rectangle? _clipRect;
+
+    public DrawBuffer(int width, int height, MyPixelFormat myPixelFormat, int bitsPerPixel = 32)
+    {
+        _width = width;
+        _height = height;
+        
+        _myPixelFormat = myPixelFormat;
+        
+        _bitsPerPixel = bitsPerPixel;
+        _bytesPerPixel =  _bitsPerPixel / 8;
+        
+        _backBuffer = new byte[width * height * bitsPerPixel];
+        
+        _dirtyRegions = new List<Rectangle>();
+        
+        _clearColor = Color.Black;
+    }
+
+    public byte[] GetBuffer()
+    {
+        return _backBuffer;
+    }
+
+    private byte[] GetRawColor(Color color)
+    {
+        return GetRawColor(color.R, color.G, color.B);
+    }
+
+    private byte[] GetRawColor(byte r, byte g, byte b)
+    {
+        switch (_myPixelFormat)
+        {
+            case MyPixelFormat.R5G6B5:
+                return Color.To16Bit(r, g, b);
+            
+            case MyPixelFormat.R8G8B8A8:
+                return Color.ToRGBA(r, g, b);
+            
+            case  MyPixelFormat.B8G8R8A8:
+                return Color.ToRGBA(r, g, b);
+            
+            default:
+                throw new Exception("Invalid pixel format.");
+        }
+    }
+
+    /// <summary>
+    /// Sets the back buffer clear color.
+    /// </summary>
+    /// <param name="color">The clear color.</param>
+    public void SetClearColor(Color color)
+    {
+        _clearColor = color;
+    }
+
+    /// <summary>
+    /// Sets the clipping rectangle for the buffer. Areas outside this area are not drawn until <see cref="ClearClipRect"/> is called.
+    /// </summary>
+    /// <param name="rect">The region to clip.</param>
+    public void SetClipRect(Rectangle rect)
+    {
+        _clipRect = rect;
+    }
+    
+    /// <summary>
+    /// Clearss the clipping rectangle for the buffer. Used in conjunction with <see cref="SetClipRect"/>.
+    /// </summary>
+    public void ClearClipRect()
+    {
+        _clipRect = null;
+    }
+    
+    /// <summary>
+    /// Clears the entire screen.
+    /// </summary>
+    public void Clear()
+    {
+        var rawColor = GetRawColor(_clearColor);
+
+        for (int i = 0; i < _backBuffer.Length; i += _bitsPerPixel)
+        {
+            for (int j = 0; j < _bytesPerPixel; j++)
+            {
+                _backBuffer[i + j] = rawColor[j];
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Clear a region on the screen.
+    /// </summary>
+    /// <param name="rect">The region to clear.</param>
+    public void Clear(Rectangle rect)
+    {
+        int x0 = Math.Max(0, rect.X);
+        int y0 = Math.Max(0, rect.Y);
+        int x1 = Math.Min(_width, rect.X + rect.Width);
+        int y1 = Math.Min(_height, rect.Y + rect.Height);
+
+        byte[] rawColor = GetRawColor(_clearColor);
+
+        int pitch = _width * _bytesPerPixel;
+
+        unsafe
+        {
+            fixed (byte* bufferPtr = _backBuffer)
+            fixed (byte* colorPtr = rawColor)
+            {
+                for (int y = y0; y < y1; y++)
+                {
+                    byte* row = bufferPtr + (y * pitch) + (x0 * _bytesPerPixel);
+
+                    for (int x = x0; x < x1; x++)
+                    {
+                        Buffer.MemoryCopy(colorPtr, row, _bitsPerPixel, _bitsPerPixel);
+                        row += _bytesPerPixel;
+                    }
+                }
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Clear the dirty regions on the screen using the draw buffer clear color.
+    /// </summary>
+    public void ClearDirtyRegions()
+    {
+        foreach (var dirtyRegion in _dirtyRegions)
+        {
+            Clear(dirtyRegion);
+        }
+        
+        _dirtyRegions.Clear();
+    }
+    
+    /// <summary>
+    /// Draws a pixel on the screen.
+    /// </summary>
+    /// <param name="x">The pixels x coordinate on the screen.</param>
+    /// <param name="y">The pixels y coordinate on the screen.</param>
+    /// <param name="r">The red color channel for the pixel.</param>
+    /// <param name="g">The green color channel for the pixel.</param>
+    /// <param name="b">The blue color channel for the pixel.</param>
+    public void DrawPixel(int x, int y, byte r, byte g, byte b)
+    {
+        if (x < 0 || x >= _width || y < 0 || y >= _height)
+            return;
+
+        if (_clipRect is not null && !_clipRect.Value.ContainsPoint(x, y))
+            return;
+
+        var rawColor = GetRawColor(r, g, b);
+        int pixelOffset = (y * _width + x) * _bytesPerPixel;
+
+        unsafe
+        {
+            fixed (byte* bufferPtr = _backBuffer)
+            fixed (byte* colorPtr = rawColor)
+            {
+                byte* dst = bufferPtr + pixelOffset;
+                for (int i = 0; i < _bytesPerPixel; i++)
+                {
+                    dst[i] = colorPtr[i];
+                }
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Draws a pixel on the screen.
+    /// </summary>
+    /// <param name="x">The pixels x coordinate on the screen.</param>
+    /// <param name="y">The pixels y coordinate on the screen.</param>
+    /// <param name="color">The color for the pixel.</param>
+    public void DrawPixel(int x, int y, Color color)
+    {
+        DrawPixel(x, y, color.R, color.G, color.B);
+    }
+    
+    /// <summary>
+    /// Draws a line between two points on the screen.
+    /// </summary>
+    /// <param name="x0">The first points x coordinate on the screen.</param>
+    /// <param name="y0">The first points y coordinate on the screen.</param>
+    /// <param name="x1">The second points x coordinate on the screen.</param>
+    /// <param name="y1">The second points y coordinate on the screen.</param>
+    /// <param name="color">The color of the line.</param>
+    public void DrawLine(int x0, int y0, int x1, int y1, Color color)
+    {
+        int dx = Math.Abs(x1 - x0);
+        int dy = Math.Abs(y1 - y0);
+        int sx = x0 < x1 ? 1 : -1;
+        int sy = y0 < y1 ? 1 : -1;
+        int err = dx - dy;
+
+        while (true)
+        {
+            DrawPixel(x0, y0, color);
+
+            if (x0 == x1 && y0 == y1)
+                break;
+
+            int e2 = 2 * err;
+            if (e2 > -dy)
+            {
+                err -= dy;
+                x0 += sx;
+            }
+            if (e2 < dx)
+            {
+                err += dx;
+                y0 += sy;
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Fills a triangle on the screen.
+    /// </summary>
+    /// <param name="p1">The first triangle point.</param>
+    /// <param name="p2">The second triangle point.</param>
+    /// <param name="p3">The third triangle point.</param>
+    /// <param name="color">The color of the triangle.</param>
+    public void FillTriangle(Vector2 p1, Vector2 p2, Vector2 p3, Color color)
+    {
+        // Sort points by Y ascending (p1.Y <= p2.Y <= p3.Y)
+        if (p2.Y < p1.Y) (p1, p2) = (p2, p1);
+        if (p3.Y < p1.Y) (p1, p3) = (p3, p1);
+        if (p3.Y < p2.Y) (p2, p3) = (p3, p2);
+
+        // Compute inverse slopes
+        float dx1 = 0, dx2 = 0, dx3 = 0;
+
+        if (p2.Y - p1.Y > 0)
+            dx1 = (p2.X - p1.X) / (p2.Y - p1.Y);
+        if (p3.Y - p1.Y > 0)
+            dx2 = (p3.X - p1.X) / (p3.Y - p1.Y);
+        if (p3.Y - p2.Y > 0)
+            dx3 = (p3.X - p2.X) / (p3.Y - p2.Y);
+
+        var sx = p1.X;
+        var ex = p1.X;
+
+        // Draw upper part of triangle (flat bottom)
+        for (int y = (int)p1.Y; y <= p2.Y; y++)
+        {
+            if (y < 0 || y >= _height)
+            {
+                sx += dx1;
+                ex += dx2;
+                continue;
+            }
+
+            int startX = (int)Math.Round(sx);
+            int endX = (int)Math.Round(ex);
+
+            if (startX > endX)
+                (startX, endX) = (endX, startX);
+
+            for (int x = startX; x <= endX; x++)
+            {
+                if (x >= 0 && x < _width)
+                    DrawPixel(x, y, color);
+            }
+
+            sx += dx1;
+            ex += dx2;
+        }
+
+        sx = p2.X;
+        // ex continues from previous loop (p1 to p3)
+        // Reset ex to p1.X + dx2 * (p2.Y - p1.Y)
+        ex = p1.X + dx2 * (p2.Y - p1.Y);
+
+        // Draw lower part of triangle (flat top)
+        for (int y = (int)p2.Y; y <= p3.Y; y++)
+        {
+            if (y < 0 || y >= _height)
+            {
+                sx += dx3;
+                ex += dx2;
+                continue;
+            }
+
+            int startX = (int)Math.Round(sx);
+            int endX = (int)Math.Round(ex);
+
+            if (startX > endX)
+                (startX, endX) = (endX, startX);
+
+            for (int x = startX; x <= endX; x++)
+            {
+                if (x >= 0 && x < _width)
+                    DrawPixel(x, y, color);
+            }
+
+            sx += dx3;
+            ex += dx2;
+        }
+    }
+    
+    /// <summary>
+    /// Draws a rectangle outline on the screen.
+    /// </summary>
+    /// <param name="x">The rectangles x coordinate on the screen.</param>
+    /// <param name="y">The rectangles y coordinate on the screen.</param>
+    /// <param name="width">The width of the rectangle.</param>
+    /// <param name="height">The height of the rectangle.</param>
+    /// <param name="borderWidth">The width of the border line.</param>
+    /// <param name="borderColor">The color of the outline</param>
+    public void DrawRect(int x, int y, int width, int height, int borderWidth, Color borderColor)
+    {
+        if (borderWidth < 1)
+        {
+            return;
+        }
+
+        if (borderWidth > 10)
+        {
+            borderWidth = 10;
+        }
+
+        for (int i = 0; i < borderWidth; i++)
+        {
+            int topY = y + i;
+            int bottomY = y + height - 1 - i;
+            int leftX = x + i;
+            int rightX = x + width - 1 - i;
+
+            // Draw top horizontal line
+            if (topY >= 0 && topY < _height)
+            {
+                for (int px = leftX; px <= rightX; px++)
+                {
+                    if (px < 0 || px >= _width) continue;
+                    DrawPixel(px, topY, borderColor);
+                }
+            }
+
+            // Draw bottom horizontal line (if different from top)
+            if (bottomY != topY && bottomY >= 0 && bottomY < _height)
+            {
+                for (int px = leftX; px <= rightX; px++)
+                {
+                    if (px < 0 || px >= _width) continue;
+                    DrawPixel(px, bottomY, borderColor);
+                }
+            }
+
+            // Draw left vertical line
+            if (leftX >= 0 && leftX < _width)
+            {
+                for (int py = topY; py <= bottomY; py++)
+                {
+                    if (py < 0 || py >= _height) continue;
+                    DrawPixel(leftX, py, borderColor);
+                }
+            }
+
+            // Draw right vertical line (if different from left)
+            if (rightX != leftX && rightX >= 0 && rightX < _width)
+            {
+                for (int py = topY; py <= bottomY; py++)
+                {
+                    if (py < 0 || py >= _height) continue;
+                    DrawPixel(rightX, py, borderColor);
+                }
+            }
+        }
+        
+        // Top border
+        _dirtyRegions.Add(new Rectangle(x, y, width, borderWidth));
+        
+        // Bottom border
+        _dirtyRegions.Add(new Rectangle(x, y + height - borderWidth, width, borderWidth));
+        
+        // Left border
+        _dirtyRegions.Add(new Rectangle(x, y + borderWidth, borderWidth, height - 2 * borderWidth));
+        
+        // Right border
+        _dirtyRegions.Add(new Rectangle(x + width - borderWidth, y + borderWidth, borderWidth, height - 2 * borderWidth));
+    }
+    
+    /// <summary>
+    /// Fills a rectangle on the screen.
+    /// </summary>
+    /// <param name="x">The rectangles x coordinate on the screen.</param>
+    /// <param name="y">The rectangles y coordinate on the screen.</param>
+    /// <param name="width">The width of the rectangle.</param>
+    /// <param name="height">The height of the rectangle.</param>
+    /// <param name="color">The color of the rectangle</param>
+    public void FillRect(int x, int y, int width, int height, Color color)
+    {
+        int x0 = Math.Max(0, x);
+        int y0 = Math.Max(0, y);
+        int x1 = Math.Min(_width, x + width);
+        int y1 = Math.Min(_height, y + height);
+
+        byte[] rawColor = GetRawColor(color);
+
+        int pitch = _width * _bytesPerPixel;
+
+        unsafe
+        {
+            fixed (byte* bufferPtr = _backBuffer)
+            fixed (byte* colorPtr = rawColor)
+            {
+                for (int py = y0; py < y1; py++)
+                {
+                    byte* row = bufferPtr + (py * pitch) + (x0 * _bytesPerPixel);
+
+                    for (int px = x0; px < x1; px++)
+                    {
+                        for (int b = 0; b < _bytesPerPixel; b++)
+                        {
+                            row[b] = colorPtr[b];
+                        }
+                        row += _bytesPerPixel;
+                    }
+                }
+            }
+        }
+        
+        _dirtyRegions.Add(new Rectangle(x, y, width, height));
+    }
+    
+    /// <summary>
+    /// Renders a character onto the screen.
+    /// </summary>
+    /// <param name="x">The characters x coordinate on the screen.</param>
+    /// <param name="y">The characters y coordinate on the screen.</param>
+    /// <param name="character">The character to be rendered.</param>
+    /// <param name="color">The color of the character.</param>
+    /// <param name="fontSize">The font size of the character.</param>
+    public void DrawChar(int x, int y, char character, Color color, int fontSize = 8)
+    {
+        if (fontSize < 8)
+            fontSize = 8;
+
+        if (!FrameBufferFont.Basic8x8.TryGetValue(character, out var font))
+            font = FrameBufferFont.Basic8x8[' '];
+
+        float scale = fontSize / 8f;
+        int intScale = (int)scale;
+        int width = _width;
+        int height = _height;
+        int pitch = width * _bytesPerPixel;
+        byte[] rawColor = GetRawColor(color);
+
+        unsafe
+        {
+            fixed (byte* bufferPtr = _backBuffer)
+            fixed (byte* colorPtr = rawColor)
+            {
+                for (int row = 0; row < 8; row++)
+                {
+                    byte bits = font[row];
+
+                    for (int col = 0; col < 8; col++)
+                    {
+                        if ((bits & (1 << (7 - col))) == 0)
+                            continue;
+
+                        int px = x + (int)(col * scale);
+                        int py = y + (int)(row * scale);
+
+                        for (int dy = 0; dy < intScale; dy++)
+                        {
+                            int dstY = py + dy;
+                            if (dstY < 0 || dstY >= height)
+                                continue;
+
+                            byte* dstRow = bufferPtr + dstY * pitch;
+
+                            for (int dx = 0; dx < intScale; dx++)
+                            {
+                                int dstX = px + dx;
+                                if (dstX < 0 || dstX >= width)
+                                    continue;
+
+                                byte* pixelPtr = dstRow + dstX * _bytesPerPixel;
+
+                                for (int b = 0; b < _bytesPerPixel; b++)
+                                    pixelPtr[b] = colorPtr[b];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Draws text onto the screen.
+    /// </summary>
+    /// <param name="x">The text x coordinate on the screen.</param>
+    /// <param name="y">The text y coordinate on the screen.</param>
+    /// <param name="text">The text to be rendered.</param>
+    /// <param name="color">The color of the text.</param>
+    /// <param name="fontSize">The font size of the text. Default: 8</param>
+    public void DrawText(int x, int y, string text, Color color, int fontSize = 8)
+    {
+        if (fontSize < 8)
+            fontSize = 8;
+
+        int cellWidth = fontSize;
+
+        for (int i = 0; i < text.Length; i++)
+        {
+            int charX = x + i * cellWidth;
+            DrawChar(charX, y, text[i], color, fontSize);
+        }
+
+        _dirtyRegions.Add(new Rectangle(x, y, text.Length * fontSize, fontSize));
+    }
+    
+    /// <summary>
+    /// Draws an image onto the screen.
+    /// </summary>
+    /// <param name="x">The image x coordinate on the screen.</param>
+    /// <param name="y">The image y coordinate on the screen.</param>
+    /// <param name="image">The image to be drawn.</param>
+    public void DrawImage(int x, int y, BitmapImage image)
+    {
+        Color mask = Color.Fuchsia;
+        int bytesPerPixel = _bytesPerPixel;
+        int frameWidth = _width;
+        int frameHeight = _height;
+        int imgWidth = image.Width;
+        int imgHeight = image.Height;
+        byte[] pixelData = image.PixelData;
+        
+        // TODO: Do not hardcode this, pull from MyEngine.
+        int depth = 32;
+
+        unsafe
+        {
+            fixed (byte* bufferPtr = _backBuffer)
+            {
+                for (int py = 0; py < imgHeight; py++)
+                {
+                    int destY = y + py;
+                    if (destY < 0 || destY >= frameHeight)
+                        continue;
+
+                    for (int px = 0; px < imgWidth; px++)
+                    {
+                        int destX = x + px;
+                        if (destX < 0 || destX >= frameWidth)
+                            continue;
+
+                        int srcIndex = (py * imgWidth + px) * (depth / 8);
+                        byte r, g, b;
+
+                        // TODO: FIX depth handling
+                        switch (depth)
+                        {
+                            case 16:
+                                ushort pixel = BitConverter.ToUInt16(pixelData, srcIndex);
+                                Color.From16Bit(pixel, out r, out g, out b);
+                                break;
+
+                            case 32:
+                                Color.FromBGRA(pixelData, srcIndex, out r, out g, out b);
+                                break;
+                            
+                            default:
+                                r = 0;
+                                b = 0;
+                                g = 0;
+                                break;
+                        }
+
+                        if (r == mask.R && g == mask.G && b == mask.B)
+                            continue;
+
+                        int destOffset = (destY * frameWidth + destX) * bytesPerPixel;
+                        byte* dst = bufferPtr + destOffset;
+
+                        byte[] colorBytes = GetRawColor(r, g, b);
+
+                        for (int i = 0; i < colorBytes.Length; i++)
+                            dst[i] = colorBytes[i];
+                    }
+                }
+            }
+        }
+
+        _dirtyRegions.Add(new Rectangle(x, y, imgWidth, imgHeight));
+    }
+}

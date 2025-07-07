@@ -97,7 +97,7 @@ public class ButtonElement : UIElement
         base.Update(deltaTimeMs);
     }
 
-    public override void Draw(FrameBuffer buffer)
+    public override void Draw(DrawBuffer buffer)
     {
         buffer.FillRect(X, Y, Width, Height, _currentTouchState ? BackgroundHover : Background);
 

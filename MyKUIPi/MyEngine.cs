@@ -1,7 +1,7 @@
 using System.Diagnostics;
-using System.Text.RegularExpressions;
 
 using MyKUIPi.Drawing;
+using MyKUIPi.Drawing.RenderTargets;
 using MyKUIPi.Input;
 using MyKUIPi.Primitives;
 using MyKUIPi.Scene;
@@ -21,12 +21,9 @@ public class MyEngine : IDisposable
 
     public InputManager InputManager { get => _inputManager; }
     private InputManager _inputManager;
-
-    public FrameBuffer? FrameBuffer { get => _frameBuffer; }
-    private FrameBuffer? _frameBuffer;
-
-    public FrameBufferInfo? FrameBufferInfo { get => _frameBufferInfo; }
-    private FrameBufferInfo? _frameBufferInfo;
+    
+    private IRenderTarget _renderTarget;
+    private DrawBuffer _drawBuffer;
     
     public int MinTouchX { get; private set; }
     public int MaxTouchX { get; private set; }
@@ -41,8 +38,6 @@ public class MyEngine : IDisposable
     private RenderTimingMetrics? _drawMetrics;
 
     private bool _isCalibratingTouch;
-    
-    private RaylibRenderer? raylibRenderer;
 
     public MyEngine(MyEngineOptions myOptions)
     {
@@ -56,6 +51,22 @@ public class MyEngine : IDisposable
         {
             Instance = this;
         }
+
+        switch (myOptions.RenderMode)
+        {
+            case RenderMode.FrameBuffer:
+                _renderTarget = new FrameBufferRenderTarget(myOptions.FrameBufferDevice);
+                break;
+            
+            case RenderMode.Raylib:
+                _renderTarget = new RaylibRenderTarget(myOptions.RenderWidth, myOptions.RenderHeight);
+                break;
+            
+            default:
+                throw new Exception("Invalid render mode, no render target could be selected.");
+        }
+
+        _drawBuffer = new DrawBuffer(MyOptions.RenderWidth, MyOptions.RenderHeight, MyOptions.PixelFormat);
     }
 
     public void Initialize()
@@ -73,49 +84,13 @@ public class MyEngine : IDisposable
             throw new Exception($"Failed to find touch input device at path '{MyOptions.TouchDevice}'.");
         }
 
-        FrameBufferInfo? frameBufferInfo = null;
-
-        if (_myOptions.RenderMode == RenderMode.FrameBuffer)
-        {
-            frameBufferInfo = GetFrameBufferInfo();
-        }
-        else
-        {
-            frameBufferInfo = new FrameBufferInfo()
-            {
-                Depth = 32,
-                Height = 1080,
-                Width = 1920
-            };
-        }
-        
-        if (frameBufferInfo is null)
-        {
-            throw new Exception("Failed to get frame buffer information.");
-        }
-
-        if (frameBufferInfo.Depth != 16 && 
-            frameBufferInfo.Depth != 32)
-        {
-            throw new Exception($"Unsupported color depth: {frameBufferInfo.Depth}-bit. Only 16-bit and 32-bit are supported.");
-        }
-
-        _frameBufferInfo = frameBufferInfo;
-        _frameBuffer = new FrameBuffer(frameBufferInfo, _myOptions);
-
-        if (_myOptions.HideConsoleCaret)
+        if (_myOptions.RenderMode == RenderMode.FrameBuffer &&
+            _myOptions.HideConsoleCaret)
         {
             Console.Write("\x1b[?25l");
         }
-
-        _inputManager.Initialize(_frameBufferInfo.Width, _frameBufferInfo.Height);
         
-        _frameBuffer.Clear(_myOptions.BackgroundColor);
-
-        if (_myOptions.RenderMode == RenderMode.Raylib)
-        {
-            raylibRenderer = new RaylibRenderer(_frameBufferInfo.Width, _frameBufferInfo.Height, _frameBufferInfo.Depth / 8);
-        }
+        _inputManager.Initialize(_myOptions.RenderWidth, _myOptions.RenderHeight);
     }
     
     private Point MeasureText(string text, int fontSize)
@@ -128,9 +103,9 @@ public class MyEngine : IDisposable
 
     public void CalibrateTouch(int holdTime = 3500)
     {
-        if (_frameBuffer is null || _frameBufferInfo is null)
+        if (_renderTarget is null)
         {
-            throw new Exception("Frame buffer not initialized. Ensure touch calibration is called after engine initialization and before render loop.");
+            throw new Exception("No render target initialized.");
         }
 
         _isCalibratingTouch = true;
@@ -145,11 +120,7 @@ public class MyEngine : IDisposable
 
         while (_isCalibratingTouch)
         {
-            foreach (var dirtyRegion in _frameBuffer.DirtyRegions)
-            {
-                _frameBuffer.Clear(_myOptions.BackgroundColor, dirtyRegion);
-            }
-            _frameBuffer.DirtyRegions.Clear();
+            _drawBuffer.ClearDirtyRegions();
 
             var (x, y, isTouching) = _inputManager.GetAbsTouchState();
             double heldDuration = 0;
@@ -190,31 +161,23 @@ public class MyEngine : IDisposable
             var phase = topLeftComplete ? "Bottom Right" : "Top Left";
             var mainText = $"Touch {phase} - {x:F0}, {y:F0}";
             var mainSize = MeasureText(mainText, fontSize);
-            var mainX = (_frameBufferInfo.Width / 2) - (mainSize.X / 2);
-            var mainY = (_frameBufferInfo.Height / 2) - (mainSize.Y / 2);
+            var mainX = (_myOptions.RenderWidth / 2) - (mainSize.X / 2);
+            var mainY = (_myOptions.RenderHeight / 2) - (mainSize.Y / 2);
 
-            _frameBuffer.DrawText(mainX, mainY, mainText, _myOptions.ForegroundColor, fontSize);
+            _drawBuffer.DrawText(mainX, mainY, mainText, _myOptions.ForegroundColor, fontSize);
 
             // Draw hold progress text (if touching)
             if (isTouching)
             {
                 var holdText = $"Hold: {Math.Min(heldDuration, targetHoldTimeMs):F0} / {targetHoldTimeMs} ms";
                 var holdSize = MeasureText(holdText, fontSize);
-                var holdX = (_frameBufferInfo.Width / 2) - (holdSize.X / 2);
+                var holdX = (_myOptions.RenderWidth / 2) - (holdSize.X / 2);
                 var holdY = mainY + mainSize.Y + 10; // 10 pixels below main text
 
-                _frameBuffer.DrawText(holdX, holdY, holdText, _myOptions.ForegroundColor, fontSize);
+                _drawBuffer.DrawText(holdX, holdY, holdText, _myOptions.ForegroundColor, fontSize);
             }
             
-            if (_myOptions.RenderMode == RenderMode.Raylib 
-                && raylibRenderer is not null)
-            {
-                raylibRenderer.Draw(_frameBuffer.GetBuffer());
-            }
-            else
-            {
-                _frameBuffer.SwapBuffers();
-            }
+            _renderTarget.SwapBuffer(_drawBuffer.GetBuffer());
         }
 
         if (topLeft is null || bottomRight is null)
@@ -227,87 +190,10 @@ public class MyEngine : IDisposable
         MinTouchY = Math.Min(topLeft.Y, bottomRight.Y);
         MaxTouchY = Math.Max(topLeft.Y, bottomRight.Y);
     }
-    
-    private static FrameBufferInfo? GetFrameBufferInfo()
-    {
-        try
-        {
-            var startInfo = new ProcessStartInfo("fbset")
-            {
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-
-            using var process = Process.Start(startInfo);
-            if (process is null)
-            {
-                return null;
-            }
-
-            string output = process.StandardOutput.ReadToEnd();
-            process.WaitForExit();
-
-            return ParseFrameBufferInfo(output);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Failed to get frame buffer information from 'fbset': {ex.Message}");
-        }
-    }
-
-    private static FrameBufferInfo ParseFrameBufferInfo(string input)
-    {
-        var info = new FrameBufferInfo();
-
-        var modeMatch = Regex.Match(input, @"mode\s+""(\d+x\d+)""");
-        if (modeMatch.Success)
-            info.Mode = modeMatch.Groups[1].Value;
-
-        var geometryMatch = Regex.Match(input, @"geometry\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)");
-        if (geometryMatch.Success)
-        {
-            info.Width = int.Parse(geometryMatch.Groups[1].Value);
-            info.Height = int.Parse(geometryMatch.Groups[2].Value);
-            info.VirtualWidth = int.Parse(geometryMatch.Groups[3].Value);
-            info.VirtualHeight = int.Parse(geometryMatch.Groups[4].Value);
-            info.Depth = int.Parse(geometryMatch.Groups[5].Value);
-        }
-
-        var timingsMatch = Regex.Match(input, @"timings\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)");
-        if (timingsMatch.Success)
-        {
-            for (int i = 0; i < 7; i++)
-            {
-                info.Timings[i] = int.Parse(timingsMatch.Groups[i + 1].Value);
-            }
-        }
-
-        var rgbaMatch = Regex.Match(input, @"rgba\s+(\d+)/(\d+),(\d+)/(\d+),(\d+)/(\d+),(\d+)/(\d+)");
-        if (rgbaMatch.Success)
-        {
-            info.Rgba = new FrameBufferInfo.RgbaInfo
-            {
-                RedLength = int.Parse(rgbaMatch.Groups[1].Value),
-                RedOffset = int.Parse(rgbaMatch.Groups[2].Value),
-
-                GreenLength = int.Parse(rgbaMatch.Groups[3].Value),
-                GreenOffset = int.Parse(rgbaMatch.Groups[4].Value),
-
-                BlueLength = int.Parse(rgbaMatch.Groups[5].Value),
-                BlueOffset = int.Parse(rgbaMatch.Groups[6].Value),
-
-                AlphaLength = int.Parse(rgbaMatch.Groups[7].Value),
-                AlphaOffset = int.Parse(rgbaMatch.Groups[8].Value),
-            };
-        }
-
-        return info;
-    }
 
     private void RenderMetrics()
     {
-        if (_frameBuffer is null)
+        if (_drawBuffer is null)
         {
             return;
         }
@@ -322,16 +208,16 @@ public class MyEngine : IDisposable
         int totalWidth = 8 * 20;
         var color = _myOptions.ForegroundColor;
 
-        _frameBuffer.FillRect(0, 0, totalWidth, totalHeight, _myOptions.BackgroundColor);
-        _frameBuffer.DrawText(x, y, $"Frame Δ: {_deltaTimeMs} ms", color); y += lineHeight;
-        _frameBuffer.DrawText(x, y, $"Clear: {_drawMetrics.ClearTime:F2} ms", color); y += lineHeight;
-        _frameBuffer.DrawText(x, y, $"Scene: {_drawMetrics.SceneDrawTime:F2} ms", color); y += lineHeight;
-        _frameBuffer.DrawText(x, y, $"UI: {_drawMetrics.UIDrawTime:F2} ms", color); y += lineHeight;
-        _frameBuffer.DrawText(x, y, $"Debug UI: {_drawMetrics.DebugUIDrawTime:F2} ms", color); y += lineHeight;
-        _frameBuffer.DrawText(x, y, $"Metrics: {_drawMetrics.MetricsTime:F2} ms", color); y += lineHeight;
-        _frameBuffer.DrawText(x, y, $"Touch: {_drawMetrics.TouchTime:F2} ms", color); y += lineHeight;
-        _frameBuffer.DrawText(x, y, $"Swap: {_drawMetrics.SwapTime:F2} ms", color); y += lineHeight;
-        _frameBuffer.DrawText(x, y, $"Total: {_drawMetrics.TotalDrawTime:F2} ms", color);
+        _drawBuffer.FillRect(0, 0, totalWidth, totalHeight, _myOptions.BackgroundColor);
+        _drawBuffer.DrawText(x, y, $"Frame Δ: {_deltaTimeMs} ms", color); y += lineHeight;
+        _drawBuffer.DrawText(x, y, $"Clear: {_drawMetrics.ClearTime:F2} ms", color); y += lineHeight;
+        _drawBuffer.DrawText(x, y, $"Scene: {_drawMetrics.SceneDrawTime:F2} ms", color); y += lineHeight;
+        _drawBuffer.DrawText(x, y, $"UI: {_drawMetrics.UIDrawTime:F2} ms", color); y += lineHeight;
+        _drawBuffer.DrawText(x, y, $"Debug UI: {_drawMetrics.DebugUIDrawTime:F2} ms", color); y += lineHeight;
+        _drawBuffer.DrawText(x, y, $"Metrics: {_drawMetrics.MetricsTime:F2} ms", color); y += lineHeight;
+        _drawBuffer.DrawText(x, y, $"Touch: {_drawMetrics.TouchTime:F2} ms", color); y += lineHeight;
+        _drawBuffer.DrawText(x, y, $"Swap: {_drawMetrics.SwapTime:F2} ms", color); y += lineHeight;
+        _drawBuffer.DrawText(x, y, $"Total: {_drawMetrics.TotalDrawTime:F2} ms", color);
     }
 
     private void UpdateTouchPosition()
@@ -342,30 +228,19 @@ public class MyEngine : IDisposable
 
     private void RenderTouchCursor()
     {
-        if (_frameBuffer is null ||
-            _frameBufferInfo is null)
-        {
-            return;
-        }
-
         var (_, _, isTouching) = _inputManager.GetTouchState();
 
-        var x = _touchCursorPosition.X * _frameBufferInfo.Width;
-        var y = _touchCursorPosition.Y * _frameBufferInfo.Height;
+        var x = _touchCursorPosition.X * _myOptions.RenderWidth;
+        var y = _touchCursorPosition.Y * _myOptions.RenderHeight;
 
-        _frameBuffer.FillRect((int)x, (int)y, 10, 10, isTouching ? Color.Red : Color.Gray);
+        _drawBuffer.FillRect((int)x, (int)y, 10, 10, isTouching ? Color.Red : Color.Gray);
     }
 
     private void RenderDebugUI(UIElement element)
     {
-        if (_frameBuffer is null)
-        {
-            return;
-        }
-
         var fontSize = 8;
-        _frameBuffer.DrawRect(element.X, element.Y, element.Width, element.Height, 1, Color.Red);
-        _frameBuffer.DrawText(element.X, element.Y - fontSize - 1, element.GetType().Name, Color.White, fontSize);
+        _drawBuffer.DrawRect(element.X, element.Y, element.Width, element.Height, 1, Color.Red);
+        _drawBuffer.DrawText(element.X, element.Y - fontSize - 1, element.GetType().Name, Color.White, fontSize);
         
         foreach (var child in element.Children)
         {
@@ -375,7 +250,7 @@ public class MyEngine : IDisposable
 
     public void Update()
     {
-        if (_frameBuffer is null)
+        if (_drawBuffer is null)
             throw new Exception("Frame buffer not initialized.");
 
         if (SceneManager.CurrentScene is null)
@@ -400,7 +275,7 @@ public class MyEngine : IDisposable
 
     public void Draw()
     {
-        if (_frameBuffer is null)
+        if (_drawBuffer is null)
         {
             throw new Exception("Frame buffer not initialized.");
         }
@@ -417,21 +292,17 @@ public class MyEngine : IDisposable
 
         // Clear Dirty Regions
         var clearTimer = Stopwatch.StartNew();
-        foreach (var dirtyRegion in _frameBuffer.DirtyRegions)
-        {
-            _frameBuffer.Clear(_myOptions.BackgroundColor, dirtyRegion);
-        }
-        _frameBuffer.DirtyRegions.Clear();
+        _drawBuffer.ClearDirtyRegions();
         clearTimer.Stop();
 
         // Scene Draw
         var sceneDrawTimer = Stopwatch.StartNew();
-        SceneManager.CurrentScene.Draw(_frameBuffer);
+        SceneManager.CurrentScene.Draw(_drawBuffer);
         sceneDrawTimer.Stop();
 
         // UI Draw
         var uiDrawTimer = Stopwatch.StartNew();
-        SceneManager.CurrentScene.UIFrame?.Draw(_frameBuffer);
+        SceneManager.CurrentScene.UIFrame?.Draw(_drawBuffer);
         uiDrawTimer.Stop();
 
         // Debug UI Draw
@@ -461,16 +332,7 @@ public class MyEngine : IDisposable
 
         // Swap Buffers
         var swapTimer = Stopwatch.StartNew();
-
-        if (_myOptions.RenderMode == RenderMode.FrameBuffer)
-        {
-            _frameBuffer.SwapBuffers();
-        }
-        else
-        {
-            raylibRenderer?.Draw(_frameBuffer.GetBuffer());
-        }
-
+        _renderTarget.SwapBuffer(_drawBuffer.GetBuffer());
         swapTimer.Stop();
 
         totalTimer.Stop();
@@ -491,6 +353,5 @@ public class MyEngine : IDisposable
     public void Dispose()
     {
         _inputManager?.Dispose();
-        _frameBuffer?.Dispose();
     }
 }

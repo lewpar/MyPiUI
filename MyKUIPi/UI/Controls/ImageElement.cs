@@ -23,25 +23,40 @@ public class ImageElement : UIElement
         {
             throw new  FileNotFoundException("Source file not found.", Source);
         }
-        
+
+        int? bitsPerPixel = null;
+
+        switch (MyEngine.Instance?.MyOptions.PixelFormat)
+        {
+            case MyPixelFormat.R8G8B8A8:
+            case MyPixelFormat.B8G8R8A8:
+                bitsPerPixel = 32;
+                break;
+            
+            case MyPixelFormat.R5G6B5:
+                bitsPerPixel = 16;
+                break;
+            
+            default:
+                throw new Exception("Unsupported pixel format.");
+        }
+                
         // Load image from disk and bit-depth of frame buffer. Default to 16-bit color if a failure occurs.
-        Image = BitmapImage.Load(Source, MyEngine.Instance is null || MyEngine.Instance.FrameBufferInfo is null ? 
-                                            16 : 
-                                            MyEngine.Instance.FrameBufferInfo.Depth);
+        Image = BitmapImage.Load(Source, bitsPerPixel.Value);
         
         Width = Image.Width;
         Height = Image.Height;
     }
 
-    public override void Draw(FrameBuffer buffer)
+    public override void Draw(DrawBuffer buffer)
     {
         if (Image is null)
         {
             return;
         }
         
-        buffer.SetClip(new Rectangle(X, Y, Width, Height));
+        buffer.SetClipRect(new Rectangle(X, Y, Width, Height));
         buffer.DrawImage(X, Y, Image);
-        buffer.ClearClip();
+        buffer.ClearClipRect();
     }
 }

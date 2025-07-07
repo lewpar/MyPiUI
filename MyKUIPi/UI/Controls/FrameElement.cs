@@ -15,12 +15,12 @@ public class FrameElement : UIElement
 
         if (Height == 0)
         {
-            Height = MyEngine.Instance?.FrameBufferInfo?.Height ?? 0;
+            Height = MyEngine.Instance?.MyOptions.RenderHeight ?? 0;
         }
 
         if (Width == 0)
         {
-            Width = MyEngine.Instance?.FrameBufferInfo?.Width ?? 0;
+            Width = MyEngine.Instance?.MyOptions?.RenderWidth ?? 0;
         }
 
         var child = Children[0];
@@ -40,7 +40,7 @@ public class FrameElement : UIElement
         child.Init();
     }
 
-    public override void Draw(FrameBuffer buffer)
+    public override void Draw(DrawBuffer buffer)
     {
         if (Children.Count < 1)
         {

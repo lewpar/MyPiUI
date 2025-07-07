@@ -23,7 +23,11 @@ class Program
             BackgroundColor = Color.Black,
             ForegroundColor = Color.White,
             
-            RenderMode = RenderMode.Raylib
+            RenderMode = RenderMode.Raylib,
+            PixelFormat = MyPixelFormat.B8G8R8A8,
+            
+            RenderWidth = 800,
+            RenderHeight = 480
         });
         
         engine.Initialize();

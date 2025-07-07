@@ -37,14 +37,14 @@ public class StackPanelElement : UIElement
         }
     }
 
-    public override void Draw(FrameBuffer buffer)
+    public override void Draw(DrawBuffer buffer)
     {
         int offsetX = X + Padding;
         int offsetY = Y + Padding;
         
         var panelBounds = new Rectangle(X, Y, Width, Height);
 
-        buffer.SetClip(panelBounds);
+        buffer.SetClipRect(panelBounds);
 
         foreach (var child in Children)
         {
@@ -65,6 +65,6 @@ public class StackPanelElement : UIElement
             child.Draw(buffer);
         }
 
-        buffer.ClearClip();
+        buffer.ClearClipRect();
     }
 }
