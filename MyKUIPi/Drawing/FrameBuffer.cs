@@ -175,34 +175,24 @@ public class FrameBuffer : IDisposable
                             continue;
 
                         int srcIndex = (py * imgWidth + px) * (depth / 8);
-
                         byte r, g, b;
 
-                        if (depth == 16)
+                        switch (depth)
                         {
-                            ushort pixel = BitConverter.ToUInt16(pixelData, srcIndex);
-                            r = (byte)(((pixel >> 11) & 0x1F) * 255 / 31);
-                            g = (byte)(((pixel >> 5) & 0x3F) * 255 / 63);
-                            b = (byte)((pixel & 0x1F) * 255 / 31);
-                        }
-                        else if (depth == 32)
-                        {
-                            if (_myOptions.RenderMode == RenderMode.Raylib)
-                            {
-                                r = pixelData[srcIndex + 0];
-                                g = pixelData[srcIndex + 1];
-                                b = pixelData[srcIndex + 2];
-                            }
-                            else
-                            {
-                                b = pixelData[srcIndex + 0];
-                                g = pixelData[srcIndex + 1];
-                                r = pixelData[srcIndex + 2];   
-                            }
-                        }
-                        else
-                        {
-                            throw new NotSupportedException($"Unsupported bpp: {depth}");
+                            case 16:
+                                ushort pixel = BitConverter.ToUInt16(pixelData, srcIndex);
+                                Color.From16Bit(pixel, out r, out g, out b);
+                                break;
+
+                            case 32:
+                                if (_myOptions.RenderMode == RenderMode.Raylib)
+                                    Color.FromBGRA(pixelData, srcIndex, out r, out g, out b);
+                                else
+                                    Color.FromRGBA(pixelData, srcIndex, out r, out g, out b);
+                                break;
+
+                            default:
+                                throw new NotSupportedException($"Unsupported bpp: {depth}");
                         }
 
                         if (r == mask.R && g == mask.G && b == mask.B)
@@ -211,19 +201,14 @@ public class FrameBuffer : IDisposable
                         int destOffset = (destY * frameWidth + destX) * bytesPerPixel;
                         byte* dst = bufferPtr + destOffset;
 
-                        if (_is16Bit)
-                        {
-                            ushort raw = Color.To16BitValue(r, g, b);
-                            dst[0] = (byte)(raw & 0xFF);
-                            dst[1] = (byte)(raw >> 8);
-                        }
-                        else
-                        {
-                            dst[0] = b;
-                            dst[1] = g;
-                            dst[2] = r;
-                            dst[3] = 0xFF;
-                        }
+                        byte[] colorBytes = _is16Bit
+                            ? Color.To16Bit(r, g, b)
+                            : (_myOptions.RenderMode == RenderMode.Raylib
+                                ? Color.ToRGBA(r, g, b)
+                                : Color.ToBGRA(r, g, b));
+
+                        for (int i = 0; i < colorBytes.Length; i++)
+                            dst[i] = colorBytes[i];
                     }
                 }
             }

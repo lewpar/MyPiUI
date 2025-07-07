@@ -60,6 +60,27 @@ public struct Color
         return new byte[] { color.B, color.G, color.R, 255 /* UNUSED ALPHA CHANNEL */ };
     }
     
+    public static void From16Bit(ushort pixel, out byte r, out byte g, out byte b)
+    {
+        r = (byte)(((pixel >> 11) & 0x1F) * 255 / 31);
+        g = (byte)(((pixel >> 5) & 0x3F) * 255 / 63);
+        b = (byte)((pixel & 0x1F) * 255 / 31);
+    }
+
+    public static void FromBGRA(byte[] data, int index, out byte r, out byte g, out byte b)
+    {
+        b = data[index + 0];
+        g = data[index + 1];
+        r = data[index + 2];
+    }
+
+    public static void FromRGBA(byte[] data, int index, out byte r, out byte g, out byte b)
+    {
+        r = data[index + 0];
+        g = data[index + 1];
+        b = data[index + 2];
+    }
+    
     public static byte[] To16Bit(byte r, byte g, byte b)
     {
         // Convert 8-bit RGB to 16-bit RGB565 format
