@@ -27,7 +27,9 @@ class Program
             PixelFormat = MyPixelFormat.B8G8R8A8,
             
             RenderWidth = 800,
-            RenderHeight = 480
+            RenderHeight = 480,
+            
+            HotReload = true
         });
         
         engine.Initialize();

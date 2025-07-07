@@ -42,7 +42,7 @@ public class MyEngine : IDisposable
     public MyEngine(MyEngineOptions myOptions)
     {
         _myOptions = myOptions;
-        _sceneManager = new SceneManager();
+        _sceneManager = new SceneManager(myOptions);
         _inputManager = new InputManager(myOptions);
         _deltaTimer = new Stopwatch();
         _touchCursorPosition = new Vector2(0, 0);

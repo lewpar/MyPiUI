@@ -17,4 +17,5 @@ public class MyEngineOptions
 
     public int RenderWidth { get; init; } = 1920;
     public int RenderHeight { get; init; } = 1080;
+    public bool HotReload { get; init; }
 }
