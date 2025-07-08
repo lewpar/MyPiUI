@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using MyKUIPi.Configuration;
 
 namespace MyKUIPi.Input;
 
@@ -64,26 +65,30 @@ public class TouchReader : InputDeviceReader<TouchReader.InputEvent>
 
     public (float normX, float normY, bool isTouching) GetTouchState()
     {
-        if (MyEngine.Instance is null)
+        var config = RuntimeConfig.Instance;
+        if (config is null)
         {
-            throw new NullReferenceException("MyEngine Instance is null.");
+            throw new NullReferenceException("Failed to get touch state, runtime config is not loaded.");
+        }
+
+        if (config is { MinTouchX: 0, MinTouchY: 0, MaxTouchX: 0, MaxTouchY: 0 })
+        {
+            throw new  NullReferenceException("Failed to get touch state, touch is not calibrated.");
         }
 
         lock (LockObject)
         {
-            var engine = MyEngine.Instance;
-
             // Prevent divide-by-zero in case of calibration error
-            float rangeX = engine.MaxTouchX - engine.MinTouchX;
-            float rangeY = engine.MaxTouchY - engine.MinTouchY;
+            float rangeX = config.MaxTouchX - config.MinTouchX;
+            float rangeY = config.MaxTouchY - config.MinTouchY;
 
             if (rangeX <= 0 || rangeY <= 0)
             {
                 return (0f, 0f, IsTouching); // fallback if calibration is invalid
             }
 
-            float normX = Math.Clamp((float)(TouchX - engine.MinTouchX) / rangeX, 0f, 1f);
-            float normY = Math.Clamp((float)(TouchY - engine.MinTouchY) / rangeY, 0f, 1f);
+            float normX = Math.Clamp((float)(TouchX - config.MinTouchX) / rangeX, 0f, 1f);
+            float normY = Math.Clamp((float)(TouchY - config.MinTouchY) / rangeY, 0f, 1f);
 
             return (normX, normY, IsTouching);
         }

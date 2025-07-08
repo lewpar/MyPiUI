@@ -29,11 +29,11 @@ class Program
             RenderWidth = 800,
             RenderHeight = 480,
             
-            HotReload = true
+            HotReload = true,
+            SkipTouchCalibration = false
         });
         
         engine.Initialize();
-        //engine.CalibrateTouch();
         
         Console.WriteLine("Loading TestScene..");
         engine.SceneManager.Push(new TestScene()

@@ -1,5 +1,5 @@
 using System.Diagnostics;
-
+using MyKUIPi.Configuration;
 using MyKUIPi.Drawing;
 using MyKUIPi.Drawing.RenderTargets;
 using MyKUIPi.Input;
@@ -24,11 +24,6 @@ public class MyEngine : IDisposable
     
     private IRenderTarget _renderTarget;
     private DrawBuffer _drawBuffer;
-    
-    public int MinTouchX { get; private set; }
-    public int MaxTouchX { get; private set; }
-    public int MinTouchY { get; private set; }
-    public int MaxTouchY { get; private set; }
 
     private long _deltaTimeMs;
     private Stopwatch _deltaTimer;
@@ -71,6 +66,8 @@ public class MyEngine : IDisposable
 
     public void Initialize()
     {
+        RuntimeConfig.Load();
+        
         if (_myOptions.RenderMode == RenderMode.FrameBuffer)
         {
             if (!File.Exists(MyOptions.FrameBufferDevice))
@@ -91,6 +88,20 @@ public class MyEngine : IDisposable
         }
         
         _inputManager.Initialize(_myOptions.RenderWidth, _myOptions.RenderHeight);
+        
+        if (!_myOptions.SkipTouchCalibration)
+        {
+            var config = RuntimeConfig.Instance;
+            if (config is null)
+            {
+                throw new Exception("Failed to start touch calibration, runtime config is not loaded.");
+            }
+            
+            if (config is { MinTouchX: 0, MinTouchY: 0, MaxTouchX: 0, MaxTouchY: 0 })
+            {
+                CalibrateTouch();
+            }
+        }
     }
     
     private Point MeasureText(string text, int fontSize)
@@ -101,7 +112,7 @@ public class MyEngine : IDisposable
         return new Point(textWidth, textHeight);
     }
 
-    public void CalibrateTouch(int holdTime = 3500)
+    private void CalibrateTouch(int holdTime = 3500)
     {
         if (_renderTarget is null)
         {
@@ -185,10 +196,18 @@ public class MyEngine : IDisposable
             throw new Exception("Failed to calibrate touch input.");
         }
 
-        MinTouchX = Math.Min(topLeft.X, bottomRight.X);
-        MaxTouchX = Math.Max(topLeft.X, bottomRight.X);
-        MinTouchY = Math.Min(topLeft.Y, bottomRight.Y);
-        MaxTouchY = Math.Max(topLeft.Y, bottomRight.Y);
+        var config = RuntimeConfig.Instance;
+        if (config is null)
+        {
+            throw new Exception("Failed to save touch calibration, runtime config is not loaded.");
+        }
+
+        config.MinTouchX = Math.Min(topLeft.X, bottomRight.X);
+        config.MinTouchY = Math.Min(topLeft.Y, bottomRight.Y);
+        config.MaxTouchX = Math.Max(topLeft.X, bottomRight.X);
+        config.MaxTouchY = Math.Max(topLeft.Y, bottomRight.Y);
+        
+        config.Save();
     }
 
     private void RenderMetrics()
