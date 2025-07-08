@@ -39,6 +39,22 @@
       <Content Include="UI\Images\icon-small.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
+      <None Remove="UI\Images\home.png" />
+      <Content Include="UI\Images\home.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <None Remove="UI\Images\clock.png" />
+      <Content Include="UI\Images\clock.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <None Remove="UI\Images\gear.png" />
+      <Content Include="UI\Images\gear.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <None Remove="UI\SettingsScene.xml" />
+      <Content Include="UI\SettingsScene.xml">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
     <ItemGroup>

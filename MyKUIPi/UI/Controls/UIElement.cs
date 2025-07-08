@@ -8,10 +8,12 @@ namespace MyKUIPi.UI.Controls;
 public abstract class UIElement
 {
     [XmlElement("Grid", typeof(GridElement))]
+    [XmlElement("Absolute", typeof(AbsoluteElement))]
     [XmlElement("Rectangle", typeof(RectangleElement))]
     [XmlElement("Button", typeof(ButtonElement))]
     [XmlElement("StackPanel", typeof(StackPanelElement))]
     [XmlElement("Image", typeof(ImageElement))]
+    [XmlElement("TextArea", typeof(TextAreaElement))]
     public List<UIElement> Children { get; } = new List<UIElement>();
     
     [XmlIgnore]
@@ -31,6 +33,24 @@ public abstract class UIElement
     
     [XmlAttribute("padding")]
     public int Padding { get; set; }
+    
+    public Color Foreground { get; set; }
+
+    [XmlAttribute("foreground")]
+    public string ForegroundHex
+    {
+        get => Color.ToHex(Foreground);
+        set => Foreground = string.IsNullOrWhiteSpace(value) ? Color.White : Color.FromHex(value);
+    }
+    
+    public Color Background { get; set; }
+
+    [XmlAttribute("background")]
+    public string BackgroundHex
+    {
+        get => Color.ToHex(Background);
+        set => Background = string.IsNullOrWhiteSpace(value) ? Color.DodgerBlue : Color.FromHex(value);
+    }
 
     public virtual void Init()
     {

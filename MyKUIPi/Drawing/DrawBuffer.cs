@@ -64,6 +64,11 @@ public class DrawBuffer
                 throw new Exception("Invalid pixel format.");
         }
     }
+    
+    private bool IsWithinClip(int x, int y)
+    {
+        return _clipRect is null || _clipRect.Value.ContainsPoint(x, y);
+    }
 
     /// <summary>
     /// Sets the back buffer clear color.
@@ -410,14 +415,15 @@ public class DrawBuffer
 
     
     /// <summary>
-    /// Fills a rectangle on the screen.
+    /// Fills a rectangle on the screen, optionally with rounded corners.
     /// </summary>
-    /// <param name="x">The rectangles x coordinate on the screen.</param>
-    /// <param name="y">The rectangles y coordinate on the screen.</param>
+    /// <param name="x">The rectangle's x coordinate on the screen.</param>
+    /// <param name="y">The rectangle's y coordinate on the screen.</param>
     /// <param name="width">The width of the rectangle.</param>
     /// <param name="height">The height of the rectangle.</param>
-    /// <param name="color">The color of the rectangle</param>
-    public void FillRect(int x, int y, int width, int height, Color color)
+    /// <param name="color">The color of the rectangle.</param>
+    /// <param name="cornerRadius">The radius of the rounded corners (optional).</param>
+    public void FillRect(int x, int y, int width, int height, Color color, int cornerRadius = 0)
     {
         int x0 = Math.Max(0, x);
         int y0 = Math.Max(0, y);
@@ -425,8 +431,10 @@ public class DrawBuffer
         int y1 = Math.Min(_height, y + height);
 
         byte[] rawColor = GetRawColor(color);
-
         int pitch = _width * _bytesPerPixel;
+
+        int r = Math.Max(0, cornerRadius);
+        int r2 = r * r; // squared radius for distance comparison
 
         unsafe
         {
@@ -435,20 +443,37 @@ public class DrawBuffer
             {
                 for (int py = y0; py < y1; py++)
                 {
-                    byte* row = bufferPtr + (py * pitch) + (x0 * _bytesPerPixel);
-
                     for (int px = x0; px < x1; px++)
                     {
-                        for (int b = 0; b < _bytesPerPixel; b++)
+                        bool draw = true;
+
+                        // Check corners if cornerRadius > 0
+                        if (r > 0)
                         {
-                            row[b] = colorPtr[b];
+                            int localX = px - x;
+                            int localY = py - y;
+
+                            if (localX < r && localY < r)
+                                draw = (localX - r) * (localX - r) + (localY - r) * (localY - r) <= r2; // top-left
+                            else if (localX >= width - r && localY < r)
+                                draw = (localX - (width - r - 1)) * (localX - (width - r - 1)) + (localY - r) * (localY - r) <= r2; // top-right
+                            else if (localX < r && localY >= height - r)
+                                draw = (localX - r) * (localX - r) + (localY - (height - r - 1)) * (localY - (height - r - 1)) <= r2; // bottom-left
+                            else if (localX >= width - r && localY >= height - r)
+                                draw = (localX - (width - r - 1)) * (localX - (width - r - 1)) + (localY - (height - r - 1)) * (localY - (height - r - 1)) <= r2; // bottom-right
                         }
-                        row += _bytesPerPixel;
+
+                        if (draw)
+                        {
+                            byte* pixel = bufferPtr + (py * pitch) + (px * _bytesPerPixel);
+                            for (int b = 0; b < _bytesPerPixel; b++)
+                                pixel[b] = colorPtr[b];
+                        }
                     }
                 }
             }
         }
-        
+
         _dirtyRegions.Add(new Rectangle(x, y, width, height));
     }
     

@@ -25,13 +25,13 @@ public class FrameElement : UIElement
 
         var child = Children[0];
         
-        if (child.Width != Width)
+        if (child.Width != Width && child.Width == 0)
         {
             child.X = Padding != 0 ? Padding : 0;
             child.Width = Padding != 0 ? Width - (Padding * 2) : Width;
         }
 
-        if (child.Height != Height)
+        if (child.Height != Height && child.Height == 0)
         {
             child.Y = Padding != 0 ? Padding : 0;
             child.Height = Padding != 0 ? Height - (Padding * 2) : Height;

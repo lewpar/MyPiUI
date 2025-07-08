@@ -17,7 +17,7 @@ class Program
             TouchDevice = InputDeviceEnumerator.AutoDetectTouchDevice(),
             
             HideConsoleCaret = true,
-            ShowMetrics = true,
+            ShowMetrics = false,
             ShowDebugUI = true,
             
             BackgroundColor = Color.Black,
@@ -55,5 +55,7 @@ class Program
             engine.Update();
             engine.Draw();
         }
+        
+        //engine.Dispose();
     }
 }

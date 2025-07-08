@@ -11,8 +11,8 @@ public class ButtonElement : UIElement
 {
     [XmlAttribute("text")]
     public string? Text { get; set; }
-    
-    [XmlAttribute("font-size")]
+
+    [XmlAttribute("font-size")] 
     public int FontSize { get; set; }
 
     [XmlAttribute("border-size")]
@@ -25,24 +25,6 @@ public class ButtonElement : UIElement
     {
         get => Color.ToHex(BorderColor);
         set => BorderColor = string.IsNullOrWhiteSpace(value) ? Color.Gray : Color.FromHex(value);
-    }
-    
-    public Color Foreground { get; set; }
-
-    [XmlAttribute("foreground")]
-    public string ForegroundHex
-    {
-        get => Color.ToHex(Foreground);
-        set => Foreground = string.IsNullOrWhiteSpace(value) ? Color.White : Color.FromHex(value);
-    }
-    
-    public Color Background { get; set; }
-
-    [XmlAttribute("background")]
-    public string BackgroundHex
-    {
-        get => Color.ToHex(Background);
-        set => Background = string.IsNullOrWhiteSpace(value) ? Color.DodgerBlue : Color.FromHex(value);
     }
     
     public Color BackgroundHover { get; set; }
@@ -62,6 +44,8 @@ public class ButtonElement : UIElement
     
     [XmlIgnore]
     public Action? Handler { get; set; }
+    
+    private ImageElement? _image;
 
     public void OnTouch()
     {
@@ -76,7 +60,19 @@ public class ButtonElement : UIElement
     public override void Init()
     {
         Width = (Width > 0 ? Width : MeasureText(FontSize, Text ?? "")) + (Padding * 2);
-        Height = FontSize + (Padding * 2);
+        Height = (Height > 0  ? Height : FontSize) + (Padding * 2);
+
+        if (Children.Count > 0)
+        {
+            var child = Children[0];
+            if (child is ImageElement image)
+            {
+                image.X = X + (Width / 2) - (image.Width / 2); 
+                image.Y = Y + (Height / 2) - (image.Height / 2);
+                
+                _image = image;
+            }
+        }
     }
     
     public override void Update(float deltaTimeMs)
@@ -99,11 +95,24 @@ public class ButtonElement : UIElement
 
     public override void Draw(DrawBuffer buffer)
     {
-        buffer.FillRect(X, Y, Width, Height, _currentTouchState ? BackgroundHover : Background);
+        buffer.SetClipRect(new Rectangle(X, Y, Width, Height));
+        
+        buffer.FillRect(X, Y, Width, Height, _currentTouchState ? BackgroundHover : Background, 5);
+
+        if (_image is not null)
+        {
+            _image.Draw(buffer);
+        }
 
         if (!string.IsNullOrWhiteSpace(Text))
         {
-            buffer.DrawText(X + Padding, Y + Padding, Text, Foreground, FontSize);   
+            var textWidth = MeasureText(FontSize, Text);
+            var posX = X + (Width / 2) - (textWidth / 2);
+            var posY = Y + (Height / 2) - (FontSize / 2);
+            
+            buffer.DrawText(posX, posY, Text, Foreground, FontSize);
         }
+        
+        buffer.ClearClipRect();
     }
 }

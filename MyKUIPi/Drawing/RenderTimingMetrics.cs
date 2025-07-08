@@ -7,7 +7,6 @@ public class RenderTimingMetrics
     public double UIDrawTime { get; set; }
     public double DebugUIDrawTime { get; set; }
     public double MetricsTime { get; set; }
-    public double TouchTime { get; set; }
     public double SwapTime { get; set; }
     public double TotalDrawTime { get; set; }
 }
