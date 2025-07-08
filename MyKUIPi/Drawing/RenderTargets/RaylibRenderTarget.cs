@@ -35,7 +35,6 @@ public class RaylibRenderTarget : IRenderTarget, IDisposable
                         "Unsupported bit depth for raylib render target. Only 16-bit and 32-bit colors are supported.");
             }
 
-            Raylib.SetConfigFlags(ConfigFlags.ResizableWindow);
             Raylib.InitWindow(_width, _height, $"Framebuffer Viewer ({width}x{height})");
             Raylib.SetTargetFPS(60);
             Raylib.SetWindowMinSize(width, height);
