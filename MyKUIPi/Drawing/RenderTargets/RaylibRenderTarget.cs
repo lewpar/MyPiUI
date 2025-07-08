@@ -36,7 +36,7 @@ public class RaylibRenderTarget : IRenderTarget, IDisposable
             }
 
             Raylib.SetConfigFlags(ConfigFlags.ResizableWindow);
-            Raylib.InitWindow(_width, _height, "Framebuffer Viewer");
+            Raylib.InitWindow(_width, _height, $"Framebuffer Viewer ({width}x{height})");
             Raylib.SetTargetFPS(60);
             Raylib.SetWindowMinSize(width, height);
             Raylib.SetWindowMaxSize(width, height);
