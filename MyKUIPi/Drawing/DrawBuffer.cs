@@ -494,7 +494,7 @@ public class DrawBuffer
             font = FrameBufferFont.Basic8x8[' '];
 
         float scale = fontSize / 8f;
-        int intScale = (int)scale;
+        int intScale = Math.Max(1, (int)Math.Ceiling(scale));
         int width = _width;
         int height = _height;
         int pitch = width * _bytesPerPixel;
