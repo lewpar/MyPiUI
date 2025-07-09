@@ -51,74 +51,80 @@ public class UIHandler
         button.Handler = (Action)method.CreateDelegate(typeof(Action), scene);
     }
     
-    private static readonly Dictionary<TextAreaElement, object> TextAreaBindings = new();
-
+    private static readonly Dictionary<(UIElement element, string propertyName), object> DataBindings = new();
     
     private static void OnBindableChanged<T>(T newValue)
     {
-        foreach (var pair in TextAreaBindings)
+        foreach (var pair in DataBindings)
         {
             if (pair.Value is BindableProperty<T> bindable && EqualityComparer<T>.Default.Equals(bindable.Value, newValue))
             {
-                pair.Key.Text = newValue?.ToString() ?? "";
+                var element = pair.Key.element;
+                var propName = pair.Key.propertyName;
+                var prop = element.GetType().GetProperty(propName);
+                if (prop is not null &&
+                    prop.CanWrite)
+                {
+                    prop.SetValue(element, newValue?.ToString());
+                }
             }
         }
     }
 
-    private static void AutowireTextArea(MyScene scene, TextAreaElement textArea)
+    private static void AutowireDatabinding(MyScene scene, UIElement element)
     {
-        if (string.IsNullOrWhiteSpace(textArea.Text))
-        {
-            return;
-        }
-        
-        // Extract binding name from e.g. "{current_time}"
-        string bindingName = textArea.Text.Trim('{', '}');
+        var properties = element.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
-        var field = scene.GetType()
-            .GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
-            .FirstOrDefault(f =>
+        foreach (var prop in properties)
+        {
+            if (prop.PropertyType != typeof(string) || !prop.CanRead || !prop.CanWrite)
+                continue;
+
+            var value = prop.GetValue(element) as string;
+            if (string.IsNullOrWhiteSpace(value) || !value.StartsWith("{") || !value.EndsWith("}"))
+                continue;
+
+            string bindingName = value.Trim('{', '}');
+
+            var field = scene.GetType()
+                .GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
+                .FirstOrDefault(f =>
+                {
+                    var attr = f.GetCustomAttribute<BindablePropertyAttribute>();
+                    return attr != null && attr.Name == bindingName;
+                });
+
+            if (field == null)
+                throw new Exception($"No BindableProperty with name '{bindingName}' found in '{scene.GetType().Name}'.");
+
+            var bindableObj = field.GetValue(scene);
+            if (bindableObj == null)
+                throw new Exception($"Field '{bindingName}' is null.");
+
+            var bindableType = bindableObj.GetType();
+            var valueProperty = bindableType.GetProperty("Value");
+            var currentValue = valueProperty?.GetValue(bindableObj);
+
+            // Set the current value into the UI element's property
+            if (currentValue != null)
             {
-                var attr = f.GetCustomAttribute<BindablePropertyAttribute>();
-                return attr != null && attr.Name == bindingName;
-            });
+                prop.SetValue(element, currentValue.ToString());
+            }
 
-        if (field == null)
-        {
-            throw new Exception($"No BindableProperty with name '{bindingName}' found in '{scene.GetType().Name}'.");
-        }
+            // Subscribe to the ValueChanged event
+            var eventInfo = bindableType.GetEvent("ValueChanged");
+            if (eventInfo != null)
+            {
+                var handlerType = eventInfo.EventHandlerType!;
+                var method = typeof(UIHandler).GetMethod(nameof(OnBindableChanged), BindingFlags.NonPublic | BindingFlags.Static)!
+                                               .MakeGenericMethod(valueProperty!.PropertyType);
+                var handlerDelegate = Delegate.CreateDelegate(handlerType, method);
 
-        var bindableObj = field.GetValue(scene);
+                eventInfo.AddEventHandler(bindableObj, handlerDelegate);
 
-        if (bindableObj == null)
-        {
-            throw new Exception($"Field '{bindingName}' is null.");
-        }
-
-        // Get current value and set it to the UI
-        var bindableType = bindableObj.GetType();
-        var valueProperty = bindableType.GetProperty("Value");
-        var currentValue = valueProperty?.GetValue(bindableObj)?.ToString();
-
-        if (currentValue != null)
-        {
-            textArea.Text = currentValue;
-        }
-
-        // Subscribe to changes
-        var eventInfo = bindableType.GetEvent("ValueChanged");
-        if (eventInfo != null)
-        {
-            var handlerType = eventInfo.EventHandlerType!;
-            var method = typeof(UIHandler).GetMethod(nameof(OnBindableChanged), BindingFlags.NonPublic | BindingFlags.Static)!
-                .MakeGenericMethod(valueProperty!.PropertyType);
-
-            var handlerDelegate = Delegate.CreateDelegate(handlerType, method);
-
-            eventInfo.AddEventHandler(bindableObj, handlerDelegate);
-
-            // Store textArea so handler knows where to update
-            TextAreaBindings[textArea] = bindableObj;
+                // Store the binding so updates can reflect
+                DataBindings[(element, prop.Name)] = bindableObj;
+            }
         }
     }
 
@@ -133,15 +139,7 @@ public class UIHandler
             }
         }
 
-        if (element is TextAreaElement textArea)
-        {
-            if (!string.IsNullOrWhiteSpace(textArea.Text) &&
-                textArea.Text.StartsWith("{") &&
-                textArea.Text.EndsWith("}"))
-            {
-                AutowireTextArea(scene, textArea);
-            }
-        }
+        AutowireDatabinding(scene, element);
 
         if (element is ImageElement image)
         {

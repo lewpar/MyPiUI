@@ -38,11 +38,28 @@ public class TestScene : MyScene
  
     [BindableProperty("current_time")]
     private readonly BindableProperty<string> _currentTime = new BindableProperty<string>();
+    
+    [BindableProperty("font_size")]
+    private readonly BindableProperty<int> _fontSize = new BindableProperty<int>();
+
+    private bool _fontSizeState;
+
+    private int _lastFontSizeUpdateSecond = -1;
 
     public override void Update(float deltaTimeMs)
     {
-        _currentTime.Value = DateTime.Now.ToString("HH:mm:ss");
-        
+        var time = DateTime.Now;
+        _currentTime.Value = time.ToString("HH:mm:ss");
+
+        if (time.Second != _lastFontSizeUpdateSecond)
+        {
+            // Toggle font size only once per second when the second changes
+            _fontSizeState = !_fontSizeState;
+            _fontSize.Value = _fontSizeState ? 8 : 16;
+
+            _lastFontSizeUpdateSecond = time.Second;
+        }
+    
         base.Update(deltaTimeMs);
     }
 }

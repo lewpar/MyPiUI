@@ -5,10 +5,28 @@ namespace MyKUIPi.UI.Controls;
 
 public class TextAreaElement : UIElement
 {
+    private string? _bindableText;
     [XmlAttribute("text")]
-    public string? Text { get; set; }
-    
+    public string? Text
+    {
+        get => _bindableText;
+        set => _bindableText = value;
+    }
+
+    private string? _bindableFontSize;
     [XmlAttribute("font-size")]
+    public string? BindableFontSize
+    {
+        get => _bindableFontSize;
+        set
+        {
+            _bindableFontSize = value;
+            if (TryParseBindableInt(value, out var parsed))
+                FontSize = parsed;
+        }
+    }
+
+    [XmlIgnore]
     public int FontSize { get; set; }
 
     public override void Draw(DrawBuffer buffer)
@@ -17,7 +35,7 @@ public class TextAreaElement : UIElement
         {
             return;
         }
-        
+
         buffer.DrawText(X, Y, Text, Foreground, FontSize);
     }
 }

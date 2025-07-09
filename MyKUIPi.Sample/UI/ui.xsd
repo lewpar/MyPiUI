@@ -11,10 +11,10 @@
                 <xs:element ref="StackPanel" />
             </xs:choice>
 
-            <xs:attribute name="width" type="xs:int" />
-            <xs:attribute name="height" type="xs:int" />
+            <xs:attribute name="width" type="BindableInt" />
+            <xs:attribute name="height" type="BindableInt" />
 
-            <xs:attribute name="padding" type="xs:int" />
+            <xs:attribute name="padding" type="BindableInt" />
         </xs:complexType>
     </xs:element>
 
@@ -27,25 +27,25 @@
                 <xs:element ref="TextArea" />
             </xs:choice>
 
-            <xs:attribute name="x" type="xs:int" />
-            <xs:attribute name="y" type="xs:int" />
+            <xs:attribute name="x" type="BindableInt" />
+            <xs:attribute name="y" type="BindableInt" />
 
-            <xs:attribute name="width" type="xs:int" />
-            <xs:attribute name="height" type="xs:int" />
+            <xs:attribute name="width" type="BindableInt" />
+            <xs:attribute name="height" type="BindableInt" />
 
-            <xs:attribute name="padding" type="xs:int" />
-            <xs:attribute name="gap" type="xs:int" />
+            <xs:attribute name="padding" type="BindableInt" />
+            <xs:attribute name="gap" type="BindableInt" />
 
-            <xs:attribute name="orientation" type="xs:int" default="0" />
+            <xs:attribute name="orientation" type="BindableInt" default="0" />
         </xs:complexType>
     </xs:element>
 
     <xs:element name="Rectangle">
         <xs:complexType>
-            <xs:attribute name="x" type="xs:int" use="required" />
-            <xs:attribute name="y" type="xs:int" use="required" />
-            <xs:attribute name="width" type="xs:int" use="required" />
-            <xs:attribute name="height" type="xs:int" use="required" />
+            <xs:attribute name="x" type="BindableInt" use="required" />
+            <xs:attribute name="y" type="BindableInt" use="required" />
+            <xs:attribute name="width" type="BindableInt" use="required" />
+            <xs:attribute name="height" type="BindableInt" use="required" />
             <xs:attribute name="background" type="xs:string" default="#202020" />
         </xs:complexType>
     </xs:element>
@@ -73,21 +73,21 @@
                 <xs:element ref="TextArea" />
             </xs:choice>
 
-            <xs:attribute name="x" type="xs:int" />
-            <xs:attribute name="y" type="xs:int" />
-            <xs:attribute name="width" type="xs:int" />
-            <xs:attribute name="height" type="xs:int" />
+            <xs:attribute name="x" type="BindableInt" />
+            <xs:attribute name="y" type="BindableInt" />
+            <xs:attribute name="width" type="BindableInt" />
+            <xs:attribute name="height" type="BindableInt" />
         </xs:complexType>
     </xs:element>
 
     <xs:element name="TextArea">
         <xs:complexType>
             <xs:attribute name="text" type="xs:string" />
-            <xs:attribute name="font-size" type="xs:int" />
+            <xs:attribute name="font-size" type="xs:string" />
 
-            <xs:attribute name="x" type="xs:int" />
-            <xs:attribute name="y" type="xs:int" />
-            
+            <xs:attribute name="x" type="BindableInt" />
+            <xs:attribute name="y" type="BindableInt" />
+
             <xs:attribute name="foreground" type="xs:string" default="#ffffff" />
         </xs:complexType>
     </xs:element>
@@ -107,22 +107,28 @@
             <xs:attribute name="handler" type="xs:string" />
 
             <xs:attribute name="text" type="xs:string" />
-            <xs:attribute name="font-size" type="xs:int" default="12" />
+            <xs:attribute name="font-size" type="BindableInt" default="12" />
 
             <xs:attribute name="background" type="xs:string" default="#1e90ff" />
             <xs:attribute name="background-hover" type="xs:string" default="#4ba6ff" />
             <xs:attribute name="foreground" type="xs:string" default="#ffffff" />
 
-            <xs:attribute name="border-size" type="xs:int" />
+            <xs:attribute name="border-size" type="BindableInt" />
             <xs:attribute name="border-color" type="xs:string" default="#f0f0f0" />
 
-            <xs:attribute name="x" type="xs:int" />
-            <xs:attribute name="y" type="xs:int" />
+            <xs:attribute name="x" type="BindableInt" />
+            <xs:attribute name="y" type="BindableInt" />
 
-            <xs:attribute name="width" type="xs:int" default="0" />
-            <xs:attribute name="height" type="xs:int" default="0" />
+            <xs:attribute name="width" type="BindableInt" default="0" />
+            <xs:attribute name="height" type="BindableInt" default="0" />
 
-            <xs:attribute name="padding" type="xs:int" default="4" />
+            <xs:attribute name="padding" type="BindableInt" default="4" />
         </xs:complexType>
     </xs:element>
+
+    <xs:simpleType name="BindableInt">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="\{\w+\}|\d+" />
+        </xs:restriction>
+    </xs:simpleType>
 </xs:schema>
