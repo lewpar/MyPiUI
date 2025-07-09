@@ -24,7 +24,7 @@ public class UIHandler
         }
     }
 
-    private static void AutowireButton(MyScene scene, ButtonElement button)
+    private static void AutowireButtonHandlers(MyScene scene, ButtonElement button)
     {
         var methods = scene.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         var method = methods.FirstOrDefault(m =>
@@ -135,7 +135,7 @@ public class UIHandler
         {
             if (!string.IsNullOrWhiteSpace(button.HandlerName))
             {
-                AutowireButton(scene, button);   
+                AutowireButtonHandlers(scene, button);   
             }
         }
 
