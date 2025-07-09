@@ -13,8 +13,8 @@ public class DrawBuffer
     private readonly int _bytesPerPixel;
     
     private byte[] _backBuffer;
-    
-    private List<Rectangle> _dirtyRegions { get; }
+
+    private List<Rectangle> _dirtyRegions;
     
     private Color _clearColor;
     
