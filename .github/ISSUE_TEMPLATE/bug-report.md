@@ -1,8 +1,8 @@
 ---
 name: Bug Report
 about: Report bugs you encounter using this template.
-title: "[BUG]"
-labels: ''
+title: "[Bug]: "
+labels: bug
 assignees: lewpar
 
 ---
