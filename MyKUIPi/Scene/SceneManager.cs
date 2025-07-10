@@ -27,7 +27,7 @@ public class SceneManager
                     return;
                 }
 
-                CurrentScene.UIFrame = UIHandler.Load(CurrentScene, CurrentScene.UI);
+                CurrentScene.UIFrame = MyXml.LoadUIElementsAsync(CurrentScene).GetAwaiter().GetResult();
                 CurrentScene.UIFrame.Init();
             };   
         }
@@ -42,7 +42,7 @@ public class SceneManager
     {
         if (!string.IsNullOrWhiteSpace(scene.UI))
         {
-            var uiFrame = UIHandler.Load(scene, scene.UI);
+            var uiFrame = MyXml.LoadUIElementsAsync(scene).GetAwaiter().GetResult();
             scene.UIFrame = uiFrame;
             
             uiFrame.Init();
@@ -59,13 +59,5 @@ public class SceneManager
     public void Pop()
     {
         _scenes.Pop();
-    }
-    
-    private static string ComputeFileHash(string filePath)
-    {
-        using var sha256 = SHA256.Create();
-        using var stream = File.OpenRead(filePath);
-        byte[] hash = sha256.ComputeHash(stream);
-        return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
     }
 }

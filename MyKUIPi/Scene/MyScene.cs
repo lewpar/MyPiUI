@@ -8,7 +8,7 @@ public class MyScene
 {
     public InputManager? Input { get; set; }
 
-    public string? UI { get; set; }
+    public required string UI { get; init; }
     public FrameElement? UIFrame { get; set; }
 
     public virtual void Draw(DrawBuffer buffer) { }

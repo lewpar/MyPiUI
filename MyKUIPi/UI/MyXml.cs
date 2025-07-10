@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
@@ -10,21 +11,34 @@ using MyKUIPi.UI.DataBinding;
 
 namespace MyKUIPi.UI;
 
-public class UIHandler
+public class MyXml
 {
     public const string Namespace = "http://my.kuipi.com/ui";
 
-    private static void SetParent(UIElement element, UIElement parent)
+    public static string GetXmlPath(MyScene scene)
+    {
+        var rootPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        if (string.IsNullOrWhiteSpace(rootPath))
+        {
+            throw new Exception("Failed to get path to xml resources.");
+        }
+
+        var path = Path.Combine(rootPath, "UI", scene.UI);
+
+        return path;
+    }
+    
+    private static void SetParentElement(UIElement element, UIElement parent)
     {
         element.Parent = parent;
 
         foreach (var child in element.Children)
         {
-            SetParent(child, element);
+            SetParentElement(child, element);
         }
     }
 
-    private static void AutowireButtonHandlers(MyScene scene, ButtonElement button)
+    private static void SetupButtonHandlers(MyScene scene, ButtonElement button)
     {
         var methods = scene.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         var method = methods.FirstOrDefault(m =>
@@ -71,7 +85,7 @@ public class UIHandler
         }
     }
 
-    private static void AutowireDatabinding(MyScene scene, UIElement element)
+    private static void SetupDatabinding(MyScene scene, UIElement element)
     {
         var properties = element.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
@@ -116,7 +130,7 @@ public class UIHandler
             if (eventInfo != null)
             {
                 var handlerType = eventInfo.EventHandlerType!;
-                var method = typeof(UIHandler).GetMethod(nameof(OnBindableChanged), BindingFlags.NonPublic | BindingFlags.Static)!
+                var method = typeof(MyXml).GetMethod(nameof(OnBindableChanged), BindingFlags.NonPublic | BindingFlags.Static)!
                                                .MakeGenericMethod(valueProperty!.PropertyType);
                 var handlerDelegate = Delegate.CreateDelegate(handlerType, method);
 
@@ -129,17 +143,17 @@ public class UIHandler
     }
 
 
-    private static void Autowire(MyScene scene, UIElement element)
+    private static void InitializeUIElement(MyScene scene, UIElement element)
     {
         if (element is ButtonElement button)
         {
             if (!string.IsNullOrWhiteSpace(button.HandlerName))
             {
-                AutowireButtonHandlers(scene, button);   
+                SetupButtonHandlers(scene, button);   
             }
         }
 
-        AutowireDatabinding(scene, element);
+        SetupDatabinding(scene, element);
 
         if (element is ImageElement image)
         {
@@ -148,16 +162,27 @@ public class UIHandler
         
         foreach (var child in element.Children)
         {
-            Autowire(scene, child);
+            InitializeUIElement(scene, child);
         }
     }
 
-    public static FrameElement Load(MyScene scene, string xmlPath)
+    public static async Task<string> LoadXmlFromPathAsync(string path)
     {
-        if (!File.Exists(xmlPath))
+        if (!File.Exists(path))
         {
-            throw new FileNotFoundException($"No UI exists at path '{xmlPath}'.");
+            throw new FileNotFoundException($"No XML file exists at path '{path}'.");
         }
+
+        var xml = await File.ReadAllTextAsync(path);
+        
+        return xml;
+    }
+
+    public static async Task<FrameElement> LoadUIElementsAsync(MyScene scene)
+    {
+        var path = GetXmlPath(scene);
+        var xml = await LoadXmlFromPathAsync(path);
+        using var xmlMemoryStream = new MemoryStream(Encoding.UTF8.GetBytes(xml));
         
         var xmlSettings = new XmlReaderSettings();
         
@@ -166,21 +191,20 @@ public class UIHandler
         xmlSettings.Schemas.Add(Namespace, "./UI/ui.xsd");
 
         xmlSettings.ValidationEventHandler += (_, args) => throw new Exception(args.Message);
-        
-        var xmlStream = File.OpenRead(xmlPath);
-        var xmlReader = XmlReader.Create(xmlStream, xmlSettings);
+
+        using var xmlReader = XmlReader.Create(xmlMemoryStream, xmlSettings);
         var serializer = new XmlSerializer(typeof(FrameElement), Namespace);
 
         var frame = serializer.Deserialize(xmlReader) as FrameElement;
         if (frame is null)
         {
-            throw new Exception($"Failed to deserialize frame element from path '{xmlPath}'.");
+            throw new Exception($"Failed to deserialize frame element from path '{path}'.");
         }
 
         foreach (var child in frame.Children)
         {
-            SetParent(child, frame);
-            Autowire(scene, child);
+            SetParentElement(child, frame);
+            InitializeUIElement(scene, child);
         }
 
         return frame;

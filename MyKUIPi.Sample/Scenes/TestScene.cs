@@ -17,7 +17,7 @@ public class TestScene : MyScene
         
         sceneManager.Push(new OtherScene()
         {
-            UI = "UI/OtherScene.xml"
+            UI = "OtherScene.xml"
         });
     }
     
@@ -32,7 +32,7 @@ public class TestScene : MyScene
         
         sceneManager.Push(new SettingsScene()
         {
-            UI = "UI/SettingsScene.xml"
+            UI = "SettingsScene.xml"
         });
     }
  

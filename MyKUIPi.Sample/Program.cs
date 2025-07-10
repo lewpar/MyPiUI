@@ -38,7 +38,7 @@ class Program
         Console.WriteLine("Loading TestScene..");
         engine.SceneManager.Push(new TestScene()
         {
-            UI = "./UI/TestScene.xml"
+            UI = "TestScene.xml"
         });
         
         bool isRunning = true;
