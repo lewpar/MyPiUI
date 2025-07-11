@@ -14,11 +14,8 @@ public class TestScene : MyScene
         {
             return;
         }
-        
-        sceneManager.Push(new OtherScene()
-        {
-            UI = "OtherScene.xml"
-        });
+
+        sceneManager.Pop();
     }
     
     [ButtonHandler("open_settings")]
