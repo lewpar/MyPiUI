@@ -22,10 +22,33 @@ public class MyXml
         {
             throw new Exception("Failed to get path to xml resources.");
         }
+        
+#if DEBUG
+        var directoryPath = FindProjectDirectory(rootPath);
+        if (directoryPath is not null)
+        {
+            rootPath = directoryPath;
+        }
+#endif
 
         var path = Path.Combine(rootPath, "UI", scene.UI);
 
         return path;
+    }
+    
+    private static string? FindProjectDirectory(string? startPath = null)
+    {
+        var dir = new DirectoryInfo(startPath ?? AppContext.BaseDirectory);
+
+        while (dir != null)
+        {
+            if (dir.GetFiles("*.csproj").Any())
+                return dir.FullName;
+
+            dir = dir.Parent;
+        }
+
+        return null;
     }
     
     private static void SetParentElement(UIElement element, UIElement parent)
