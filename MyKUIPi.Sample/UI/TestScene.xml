@@ -6,11 +6,11 @@
         <Rectangle x="0" y="0" width="800" height="480" />
         
         <Button x="10" y="10" width="40" height="40" background="#404040" background-hover="#000000">
-            <Image source="./UI/Images/home.png" />
+            <Image source="./UI/Images/home.png" width="20" height="20" />
         </Button>
 
         <Button x="10" y="70" width="40" height="40" background="#404040" background-hover="#000000">
-            <Image source="./UI/Images/clock.png" />
+            <Image source="./UI/Images/clock.png" width="20" height="20" />
         </Button>
 
         <Button x="10" y="130" width="40" height="40" background="#404040" background-hover="#000000" handler="open_settings">

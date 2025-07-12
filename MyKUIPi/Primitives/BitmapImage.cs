@@ -25,6 +25,7 @@ public class BitmapImage
             throw new ArgumentException("Only 16 or 32 bits per pixel supported.");
 
         using var image = Image.Load<Argb32>(path);
+
         image.Mutate(ctx => ctx.Resize(width, height));
 
         if (bpp == 16)

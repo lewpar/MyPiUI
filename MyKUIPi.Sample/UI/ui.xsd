@@ -95,6 +95,12 @@
     <xs:element name="Image">
         <xs:complexType>
             <xs:attribute name="source" type="xs:string" />
+
+            <xs:attribute name="x" type="BindableInt" />
+            <xs:attribute name="y" type="BindableInt" />
+
+            <xs:attribute name="width" type="xs:int" />
+            <xs:attribute name="height" type="xs:int" />
         </xs:complexType>
     </xs:element>
 
