@@ -42,7 +42,7 @@ public class ImageElement : UIElement
         }
                 
         // Load image from disk and bit-depth of frame buffer. Default to 16-bit color if a failure occurs.
-        Image = BitmapImage.Load(Source, bitsPerPixel.Value);
+        Image = BitmapImage.Load(Source, bitsPerPixel.Value, Width, Height);
         
         Width = Image.Width;
         Height = Image.Height;

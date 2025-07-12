@@ -1,5 +1,6 @@
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 namespace MyKUIPi.Primitives;
 
@@ -18,14 +19,13 @@ public class BitmapImage
         AlphaData = alphaData;
     }
 
-    public static BitmapImage Load(string path, int bpp)
+    public static BitmapImage Load(string path, int bpp, int width, int height)
     {
         if (bpp != 16 && bpp != 32)
             throw new ArgumentException("Only 16 or 32 bits per pixel supported.");
 
         using var image = Image.Load<Argb32>(path);
-        int width = image.Width;
-        int height = image.Height;
+        image.Mutate(ctx => ctx.Resize(width, height));
 
         if (bpp == 16)
         {
