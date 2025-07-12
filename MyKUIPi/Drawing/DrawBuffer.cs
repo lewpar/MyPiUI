@@ -567,24 +567,16 @@ public class DrawBuffer
         _dirtyRegions.Add(new Rectangle(x, y, text.Length * fontSize, fontSize));
     }
     
-    /// <summary>
-    /// Draws an image onto the screen.
-    /// </summary>
-    /// <param name="x">The image x coordinate on the screen.</param>
-    /// <param name="y">The image y coordinate on the screen.</param>
-    /// <param name="image">The image to be drawn.</param>
     public void DrawImage(int x, int y, BitmapImage image)
     {
-        Color mask = Color.Fuchsia;
+        int bpp = _bitsPerPixel;
         int bytesPerPixel = _bytesPerPixel;
         int frameWidth = _width;
         int frameHeight = _height;
         int imgWidth = image.Width;
         int imgHeight = image.Height;
-        byte[] pixelData = image.PixelData;
-        
-        // TODO: Do not hardcode this, pull from MyEngine.
-        int depth = 32;
+        byte[] srcPixels = image.PixelData;
+        byte[]? alphaData = image.AlphaData;
 
         unsafe
         {
@@ -593,47 +585,53 @@ public class DrawBuffer
                 for (int py = 0; py < imgHeight; py++)
                 {
                     int destY = y + py;
-                    if (destY < 0 || destY >= frameHeight)
-                        continue;
+                    if (destY < 0 || destY >= frameHeight) continue;
 
                     for (int px = 0; px < imgWidth; px++)
                     {
                         int destX = x + px;
-                        if (destX < 0 || destX >= frameWidth)
-                            continue;
+                        if (destX < 0 || destX >= frameWidth) continue;
 
-                        int srcIndex = (py * imgWidth + px) * (depth / 8);
-                        byte r, g, b;
+                        int srcIndex = (py * imgWidth + px);
+                        byte r, g, b, a;
 
-                        // TODO: FIX depth handling
-                        switch (depth)
+                        switch (bpp)
                         {
                             case 16:
-                                ushort pixel = BitConverter.ToUInt16(pixelData, srcIndex);
-                                Color.From16Bit(pixel, out r, out g, out b);
+                                ushort pixel = BitConverter.ToUInt16(srcPixels, srcIndex * 2);
+                                Color.FromRGB565(pixel, out r, out g, out b);
+                                a = alphaData?[srcIndex] ?? (byte)255;
                                 break;
 
                             case 32:
-                                Color.FromBGRA(pixelData, srcIndex, out r, out g, out b);
+                                Color.FromBGRA(srcPixels, srcIndex * 4, out r, out g, out b, out a);
                                 break;
-                            
+
                             default:
-                                r = 0;
-                                b = 0;
-                                g = 0;
-                                break;
+                                throw new Exception("Unsupported bit depth: " + bpp);
                         }
 
-                        if (r == mask.R && g == mask.G && b == mask.B)
-                            continue;
+                        if (a == 0) continue; // fully transparent
 
                         int destOffset = (destY * frameWidth + destX) * bytesPerPixel;
                         byte* dst = bufferPtr + destOffset;
 
-                        byte[] colorBytes = GetRawColor(r, g, b);
+                        if (a < 255)
+                        {
+                            // Alpha blend with existing framebuffer pixel
+                            byte dstR = dst[2], dstG = dst[1], dstB = dst[0];
 
-                        for (int i = 0; i < colorBytes.Length; i++)
-                            dst[i] = colorBytes[i];
+                            dst[2] = (byte)((r * a + dstR * (255 - a)) / 255);
+                            dst[1] = (byte)((g * a + dstG * (255 - a)) / 255);
+                            dst[0] = (byte)((b * a + dstB * (255 - a)) / 255);
+                        }
+                        else
+                        {
+                            // Fully opaque
+                            byte[] colorBytes = GetRawColor(r, g, b);
+                            for (int i = 0; i < colorBytes.Length; i++)
+                                dst[i] = colorBytes[i];
+                        }
                     }
                 }
             }
@@ -641,4 +639,5 @@ public class DrawBuffer
 
         _dirtyRegions.Add(new Rectangle(x, y, imgWidth, imgHeight));
     }
+
 }

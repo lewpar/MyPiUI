@@ -60,18 +60,19 @@ public struct Color
         return new byte[] { color.B, color.G, color.R, 255 /* UNUSED ALPHA CHANNEL */ };
     }
     
-    public static void From16Bit(ushort pixel, out byte r, out byte g, out byte b)
+    public static void FromRGB565(ushort pixel, out byte r, out byte g, out byte b)
     {
         r = (byte)(((pixel >> 11) & 0x1F) * 255 / 31);
         g = (byte)(((pixel >> 5) & 0x3F) * 255 / 63);
         b = (byte)((pixel & 0x1F) * 255 / 31);
     }
 
-    public static void FromBGRA(byte[] data, int index, out byte r, out byte g, out byte b)
+    public static void FromBGRA(byte[] data, int index, out byte r, out byte g, out byte b, out byte a)
     {
         b = data[index + 0];
         g = data[index + 1];
         r = data[index + 2];
+        a = data[index + 3];
     }
 
     public static void FromRGBA(byte[] data, int index, out byte r, out byte g, out byte b)
