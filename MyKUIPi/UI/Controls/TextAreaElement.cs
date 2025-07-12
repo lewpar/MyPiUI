@@ -10,7 +10,11 @@ public class TextAreaElement : UIElement
     public string? Text
     {
         get => _bindableText;
-        set => _bindableText = value;
+        set
+        {
+            _bindableText = value;
+            RecalculateBounds(value, FontSize);
+        } 
     }
 
     private string? _bindableFontSize;
@@ -22,12 +26,21 @@ public class TextAreaElement : UIElement
         {
             _bindableFontSize = value;
             if (TryParseBindableInt(value, out var parsed))
+            {
                 FontSize = parsed;
+                RecalculateBounds(Text, parsed);
+            }
         }
     }
 
     [XmlIgnore]
     public int FontSize { get; set; }
+
+    private void RecalculateBounds(string? text, int fontSize)
+    {
+        Width = MeasureText(fontSize, text ?? "");
+        Height = FontSize;
+    }
 
     public override void Draw(DrawBuffer buffer)
     {
@@ -35,9 +48,6 @@ public class TextAreaElement : UIElement
         {
             return;
         }
-
-        Width = MeasureText(FontSize, Text);
-        Height = FontSize;
 
         buffer.DrawText(X, Y, Text, Foreground, FontSize);
     }

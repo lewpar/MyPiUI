@@ -2,22 +2,9 @@
 <Frame xmlns="http://my.kuipi.com/ui"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://my.kuipi.com/ui ui.xsd">
-    <Absolute>
-        <Rectangle x="0" y="0" width="800" height="480" />
-        
-        <Button x="10" y="10" width="40" height="40" background="#404040" background-hover="#000000">
-            <Image source="./UI/Images/home.png" width="20" height="20" />
-        </Button>
-
-        <Button x="10" y="70" width="40" height="40" background="#404040" background-hover="#000000">
-            <Image source="./UI/Images/clock.png" width="20" height="20" />
-        </Button>
-
-        <Button x="10" y="130" width="40" height="40" background="#404040" background-hover="#000000" handler="open_settings">
-            <Image source="./UI/Images/gear.png" />
-        </Button>
-        
-        <TextArea text="Hello, world." foreground="#ffffff" x="0" y="190" />
-        <TextArea text="{current_time}" font-size="{font_size}" foreground="#ffffff" x="0" y="230" />
-    </Absolute>
+    <StackPanel>
+        <TextArea text="Hello, World!" />
+        <TextArea text="Foo" />
+        <TextArea text="Bar" />
+    </StackPanel>
 </Frame>

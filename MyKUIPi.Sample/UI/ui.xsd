@@ -83,7 +83,7 @@
     <xs:element name="TextArea">
         <xs:complexType>
             <xs:attribute name="text" type="xs:string" />
-            <xs:attribute name="font-size" type="xs:string" />
+            <xs:attribute name="font-size" type="xs:string" default="8" />
 
             <xs:attribute name="x" type="BindableInt" />
             <xs:attribute name="y" type="BindableInt" />
