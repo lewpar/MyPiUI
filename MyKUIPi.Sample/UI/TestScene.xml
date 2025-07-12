@@ -2,7 +2,7 @@
 <Frame xmlns="http://my.kuipi.com/ui"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://my.kuipi.com/ui ui.xsd">
-    <StackPanel>
+    <StackPanel orientation="0">
         <TextArea text="Hello, World!" />
         <TextArea text="Foo" />
         <TextArea text="Bar" />
