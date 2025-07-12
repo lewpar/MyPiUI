@@ -36,6 +36,9 @@ public class TextAreaElement : UIElement
             return;
         }
 
+        Width = MeasureText(FontSize, Text);
+        Height = FontSize;
+
         buffer.DrawText(X, Y, Text, Foreground, FontSize);
     }
 }
