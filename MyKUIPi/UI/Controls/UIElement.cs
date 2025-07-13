@@ -14,6 +14,7 @@ public abstract class UIElement
     [XmlElement("StackPanel", typeof(StackPanelElement))]
     [XmlElement("Image", typeof(ImageElement))]
     [XmlElement("TextArea", typeof(TextAreaElement))]
+    [XmlElement("Toggle", typeof(ToggleElement))]
     public List<UIElement> Children { get; } = new();
 
     [XmlIgnore]

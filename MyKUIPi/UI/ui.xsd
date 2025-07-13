@@ -95,6 +95,12 @@
             <xs:attribute name="foreground" type="xs:string" default="#ffffff" />
         </xs:complexType>
     </xs:element>
+    
+    <xs:element name="Toggle">
+        <xs:complexType>
+            <xs:attribute name="background" type="xs:string" default="#606060" />
+        </xs:complexType>
+    </xs:element>
 
     <xs:element name="Image">
         <xs:complexType>

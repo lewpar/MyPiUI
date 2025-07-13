@@ -9,6 +9,7 @@
                 <TextArea text="Foo" />
                 <TextArea text="Bar" />
                 <Rectangle width="200" height="2" background="#808080" />
+                <Toggle />
             </StackPanel>
         </StackPanel>
     </Absolute>
