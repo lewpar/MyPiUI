@@ -57,8 +57,8 @@ public class DrawBuffer
             case MyPixelFormat.R8G8B8A8:
                 return Color.ToRGBA(r, g, b);
             
-            case  MyPixelFormat.B8G8R8A8:
-                return Color.ToRGBA(r, g, b);
+            case MyPixelFormat.B8G8R8A8:
+                return Color.ToBGRA(r, g, b);
             
             default:
                 throw new Exception("Invalid pixel format.");

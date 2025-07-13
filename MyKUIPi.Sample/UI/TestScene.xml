@@ -2,9 +2,14 @@
 <Frame xmlns="http://my.kuipi.com/ui"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://my.kuipi.com/ui ui.xsd">
-    <StackPanel orientation="0">
-        <TextArea text="Hello, World!" />
-        <TextArea text="Foo" />
-        <TextArea text="Bar" />
-    </StackPanel>
+    <Absolute>
+        <StackPanel padding="1" background="#303030">
+            <StackPanel orientation="0" content-alignment="1" padding="10" background="#202020">
+                <TextArea text="Hello, World!" />
+                <TextArea text="Foo" />
+                <TextArea text="Bar" />
+                <Rectangle width="200" height="2" background="#808080" />
+            </StackPanel>
+        </StackPanel>
+    </Absolute>
 </Frame>
