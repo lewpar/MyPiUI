@@ -9,6 +9,9 @@ public class RectangleElement : UIElement
 {
     public override void Draw(DrawBuffer buffer)
     {
-        buffer.FillRect(X, Y, Width, Height, Background);
+        if (Background is not null)
+        {
+            buffer.FillRect(X, Y, Width, Height, Background.Value);   
+        }
     }
 }

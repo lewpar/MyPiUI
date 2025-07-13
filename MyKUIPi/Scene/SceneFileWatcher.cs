@@ -1,3 +1,5 @@
+using MyKUIPi.UI;
+
 namespace MyKUIPi.Scene;
 
 using System;
@@ -13,15 +15,16 @@ public class SceneFileWatcher
 
     public void SetScene(MyScene scene)
     {
-        if (!File.Exists(scene.UI))
+        var path = MyXml.GetXmlPath(scene);
+        if (!File.Exists(path))
         {
             throw new FileNotFoundException("File to watch not found", scene.UI);
         }
 
-        _filePath = Path.GetFullPath(scene.UI);
-        _fileName = Path.GetFileName(_filePath);
+        _filePath = path;
+        _fileName = Path.GetFileName(path);
         
-        Console.WriteLine($"Listening for file changed to '{_filePath}'.");
+        Console.WriteLine($"Listening for file changes to '{_filePath}'.");
 
         string directory = Path.GetDirectoryName(_filePath)!;
 

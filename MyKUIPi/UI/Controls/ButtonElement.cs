@@ -52,13 +52,13 @@ public class ButtonElement : UIElement
         set => BorderColor = string.IsNullOrWhiteSpace(value) ? Color.Gray : Color.FromHex(value);
     }
 
-    public Color BackgroundHover { get; set; }
+    public Color? BackgroundHover { get; set; }
 
     [XmlAttribute("background-hover")]
-    public string BackgroundHoverHex
+    public string? BackgroundHoverHex
     {
-        get => Color.ToHex(BackgroundHover);
-        set => BackgroundHover = string.IsNullOrWhiteSpace(value) ? Color.SkyBlue : Color.FromHex(value);
+        get => BackgroundHover is null ? null : Color.ToHex(BackgroundHover.Value);
+        set => BackgroundHover = string.IsNullOrWhiteSpace(value) ? null : Color.FromHex(value);
     }
 
     private bool _currentTouchState;
@@ -79,15 +79,22 @@ public class ButtonElement : UIElement
 
     public override void Init()
     {
+        RecalculateBounds();
+        
+        if (Children.Count > 0)
+        {
+            var child = Children[0];
+            if (child is ImageElement image)
+            {
+                _image = image;
+            }
+        }
+    }
+
+    private void RecalculateBounds()
+    {
         Width = (Width > 0 ? Width : MeasureText(FontSize, Text ?? "")) + (Padding * 2);
         Height = (Height > 0 ? Height : FontSize) + (Padding * 2);
-
-        if (Children.Count > 0 && Children[0] is ImageElement image)
-        {
-            image.X = X + (Width / 2) - (image.Width / 2);
-            image.Y = Y + (Height / 2) - (image.Height / 2);
-            _image = image;
-        }
     }
 
     public override void Update(float deltaTimeMs)
@@ -108,9 +115,31 @@ public class ButtonElement : UIElement
     public override void Draw(DrawBuffer buffer)
     {
         buffer.SetClipRect(new Rectangle(X, Y, Width, Height));
-        buffer.FillRect(X, Y, Width, Height, _currentTouchState ? BackgroundHover : Background, 5);
 
-        _image?.Draw(buffer);
+        if (Background is not null &&
+            !_currentTouchState)
+        {
+            buffer.FillRect(X, Y, Width, Height, Background.Value, 5);   
+        }
+        
+        if (BackgroundHover is not null &&
+            _currentTouchState)
+        {
+            buffer.FillRect(X, Y, Width, Height, BackgroundHover.Value, 5);   
+        }
+
+        if (_image is not null)
+        {
+            // 1: Initial position
+            _image.X = X;
+            _image.Y = Y;
+            
+            // 2: Centering
+            _image.X += (Width / 2) - (_image.Width / 2);
+            _image.Y += (Height / 2) - (_image.Height / 2);
+            
+            _image.Draw(buffer);
+        }
 
         if (!string.IsNullOrWhiteSpace(Text))
         {

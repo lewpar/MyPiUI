@@ -1,5 +1,6 @@
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 namespace MyKUIPi.Primitives;
 
@@ -8,37 +9,39 @@ public class BitmapImage
     public int Width { get; private set; }
     public int Height { get; private set; }
     public byte[] PixelData { get; private set; }
+    public byte[]? AlphaData { get; private set; }
 
-    private BitmapImage(int width, int height, byte[] pixelData)
+    private BitmapImage(int width, int height, byte[] pixelData,  byte[]? alphaData)
     {
         Width = width;
         Height = height;
         PixelData = pixelData;
+        AlphaData = alphaData;
     }
 
-    public static BitmapImage Load(string path, int bpp)
+    public static BitmapImage Load(string path, int bpp, int width, int height)
     {
         if (bpp != 16 && bpp != 32)
             throw new ArgumentException("Only 16 or 32 bits per pixel supported.");
 
-        using var image = Image.Load<Rgb24>(path);
-        int width = image.Width;
-        int height = image.Height;
+        using var image = Image.Load<Argb32>(path);
 
-        byte[] pixelData = bpp switch
+        image.Mutate(ctx => ctx.Resize(width, height));
+
+        if (bpp == 16)
         {
-            
-            16 => ConvertToRGB565(image, width, height),
-            32 => ConvertToBGRA32(image, width, height),
-            _ => throw new NotSupportedException("Unsupported bpp.")
-        };
+            var result = ConvertToRGB565WithAlpha(image, width, height);
+            return new BitmapImage(width, height, result.rgb565, result.alpha);
+        }
 
-        return new BitmapImage(width, height, pixelData);
+        byte[] bgra = ConvertToBGRA32(image, width, height);
+        return new BitmapImage(width, height, bgra, null);
     }
     
-    private static byte[] ConvertToRGB565(Image<Rgb24> image, int width, int height)
+    private static (byte[] rgb565, byte[] alpha) ConvertToRGB565WithAlpha(Image<Argb32> image, int width, int height)
     {
-        byte[] data = new byte[width * height * 2];
+        byte[] rgb565 = new byte[width * height * 2];
+        byte[] alpha = new byte[width * height];
 
         image.ProcessPixelRows(accessor =>
         {
@@ -51,19 +54,20 @@ public class BitmapImage
                     ushort r = (ushort)(pixel.R >> 3);
                     ushort g = (ushort)(pixel.G >> 2);
                     ushort b = (ushort)(pixel.B >> 3);
-                    ushort rgb565 = (ushort)((r << 11) | (g << 5) | b);
+                    ushort packed = (ushort)((r << 11) | (g << 5) | b);
 
-                    int index = (y * width + x) * 2;
-                    data[index + 0] = (byte)(rgb565 & 0xFF);
-                    data[index + 1] = (byte)((rgb565 >> 8) & 0xFF);
+                    int index = y * width + x;
+                    rgb565[index * 2 + 0] = (byte)(packed & 0xFF);
+                    rgb565[index * 2 + 1] = (byte)((packed >> 8) & 0xFF);
+                    alpha[index] = pixel.A;
                 }
             }
         });
 
-        return data;
+        return (rgb565, alpha);
     }
     
-    private static byte[] ConvertToBGRA32(Image<Rgb24> image, int width, int height)
+    private static byte[] ConvertToBGRA32(Image<Argb32> image, int width, int height)
     {
         byte[] data = new byte[width * height * 4];
 
@@ -75,12 +79,11 @@ public class BitmapImage
                 for (int x = 0; x < width; x++)
                 {
                     var pixel = row[x];
-
                     int index = (y * width + x) * 4;
                     data[index + 0] = pixel.B;
                     data[index + 1] = pixel.G;
                     data[index + 2] = pixel.R;
-                    data[index + 3] = 0xFF; // Full alpha
+                    data[index + 3] = pixel.A;
                 }
             }
         });

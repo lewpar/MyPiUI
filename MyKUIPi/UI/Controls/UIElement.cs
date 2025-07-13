@@ -108,13 +108,13 @@ public abstract class UIElement
         set => Foreground = string.IsNullOrWhiteSpace(value) ? Color.White : Color.FromHex(value);
     }
 
-    public Color Background { get; set; }
+    public Color? Background { get; set; }
 
     [XmlAttribute("background")]
-    public string BackgroundHex
+    public string? BackgroundHex
     {
-        get => Color.ToHex(Background);
-        set => Background = string.IsNullOrWhiteSpace(value) ? Color.DodgerBlue : Color.FromHex(value);
+        get => Background is null ? null : Color.ToHex(Background.Value);
+        set => Background = string.IsNullOrWhiteSpace(value) ? null : Color.FromHex(value);
     }
 
     public virtual void Init()

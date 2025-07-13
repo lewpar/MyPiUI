@@ -3,7 +3,7 @@ using MyKUIPi.Drawing;
 
 namespace MyKUIPi.UI.Controls;
 
-[XmlRoot("Frame", Namespace = UIHandler.Namespace)]
+[XmlRoot("Frame", Namespace = MyXml.Namespace)]
 public class FrameElement : UIElement
 {
     public override void Init()

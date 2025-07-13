@@ -25,6 +25,7 @@
                 <xs:element ref="Image" />
                 <xs:element ref="StackPanel" />
                 <xs:element ref="TextArea" />
+                <xs:element ref="Rectangle" />
             </xs:choice>
 
             <xs:attribute name="x" type="BindableInt" />
@@ -33,17 +34,20 @@
             <xs:attribute name="width" type="BindableInt" />
             <xs:attribute name="height" type="BindableInt" />
 
+            <xs:attribute name="background" type="xs:string" />
+
             <xs:attribute name="padding" type="BindableInt" />
             <xs:attribute name="gap" type="BindableInt" />
 
             <xs:attribute name="orientation" type="BindableInt" default="0" />
+            <xs:attribute name="content-alignment" type="BindableInt" default="0" />
         </xs:complexType>
     </xs:element>
 
     <xs:element name="Rectangle">
         <xs:complexType>
-            <xs:attribute name="x" type="BindableInt" use="required" />
-            <xs:attribute name="y" type="BindableInt" use="required" />
+            <xs:attribute name="x" type="BindableInt" />
+            <xs:attribute name="y" type="BindableInt" />
             <xs:attribute name="width" type="BindableInt" use="required" />
             <xs:attribute name="height" type="BindableInt" use="required" />
             <xs:attribute name="background" type="xs:string" default="#202020" />
@@ -83,7 +87,7 @@
     <xs:element name="TextArea">
         <xs:complexType>
             <xs:attribute name="text" type="xs:string" />
-            <xs:attribute name="font-size" type="xs:string" />
+            <xs:attribute name="font-size" type="xs:string" default="8" />
 
             <xs:attribute name="x" type="BindableInt" />
             <xs:attribute name="y" type="BindableInt" />
@@ -95,6 +99,12 @@
     <xs:element name="Image">
         <xs:complexType>
             <xs:attribute name="source" type="xs:string" />
+
+            <xs:attribute name="x" type="BindableInt" />
+            <xs:attribute name="y" type="BindableInt" />
+
+            <xs:attribute name="width" type="xs:int" />
+            <xs:attribute name="height" type="xs:int" />
         </xs:complexType>
     </xs:element>
 

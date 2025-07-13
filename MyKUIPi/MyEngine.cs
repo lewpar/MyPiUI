@@ -63,6 +63,8 @@ public class MyEngine : IDisposable
         }
 
         _drawBuffer = new DrawBuffer(MyOptions.RenderWidth, MyOptions.RenderHeight, MyOptions.PixelFormat);
+        _drawBuffer.SetClearColor(myOptions.BackgroundColor);
+        _drawBuffer.Clear();
     }
 
     public void Initialize()

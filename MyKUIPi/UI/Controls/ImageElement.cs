@@ -40,9 +40,23 @@ public class ImageElement : UIElement
             default:
                 throw new Exception("Unsupported pixel format.");
         }
-                
-        // Load image from disk and bit-depth of frame buffer. Default to 16-bit color if a failure occurs.
-        Image = BitmapImage.Load(Source, bitsPerPixel.Value);
+
+        var width = Width;
+        var height = Height;
+
+        if (width <= 0 &&
+            Parent is not null)
+        {
+            width = Parent.Width;
+        }
+
+        if (height <= 0 &&
+            Parent is not null)
+        {
+            height = Parent.Height;
+        }
+        
+        Image = BitmapImage.Load(Source, bitsPerPixel.Value, width, height);
         
         Width = Image.Width;
         Height = Image.Height;

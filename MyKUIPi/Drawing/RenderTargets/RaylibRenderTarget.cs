@@ -10,6 +10,8 @@ public class RaylibRenderTarget : IRenderTarget, IDisposable
     private readonly Texture2D _texture;
     private readonly Image _image;
     
+    private readonly Color? _backgroundColor;
+    
     public RaylibRenderTarget(int width, int height, int bpp = 32)
     {
         unsafe
@@ -50,6 +52,17 @@ public class RaylibRenderTarget : IRenderTarget, IDisposable
             };
 
             _texture = Raylib.LoadTextureFromImage(_image);
+
+            var myOptions = MyEngine.Instance?.MyOptions;
+            if (myOptions is not null)
+            {
+                _backgroundColor = new Color()
+                {
+                    R = myOptions.BackgroundColor.R,
+                    G = myOptions.BackgroundColor.G,
+                    B = myOptions.BackgroundColor.B,
+                };
+            }
         }
     }
     
@@ -72,7 +85,7 @@ public class RaylibRenderTarget : IRenderTarget, IDisposable
         }
 
         Raylib.BeginDrawing();
-        Raylib.ClearBackground(Color.Black);
+        Raylib.ClearBackground(_backgroundColor ?? Color.Black);
         Raylib.DrawTexture(_texture, 0, 0, Color.White);
         Raylib.EndDrawing();
     }
