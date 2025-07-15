@@ -123,7 +123,6 @@ public class StackPanelElement : UIElement
                 }
                 
                 offsetY += child.Height + Gap;
-                child.Width = Width - Padding * 2;
             }
             else
             {
@@ -139,7 +138,6 @@ public class StackPanelElement : UIElement
                 }
 
                 offsetX += child.Width + Gap;
-                child.Height = Height - Padding * 2;
             }
         }
     }

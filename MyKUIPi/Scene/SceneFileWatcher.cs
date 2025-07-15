@@ -15,7 +15,7 @@ public class SceneFileWatcher
 
     public void SetScene(MyScene scene)
     {
-        var path = MyXml.GetXmlPath(scene);
+        var path = MyUI.GetXmlPath(scene);
         if (!File.Exists(path))
         {
             throw new FileNotFoundException("File to watch not found", scene.UI);

@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Reflection;
 using System.Text;
 using System.Xml;
@@ -7,11 +8,10 @@ using System.Xml.Serialization;
 using MyKUIPi.Scene;
 using MyKUIPi.UI.Attributes;
 using MyKUIPi.UI.Controls;
-using MyKUIPi.UI.DataBinding;
 
 namespace MyKUIPi.UI;
 
-public class MyXml
+public class MyUI
 {
     public const string Namespace = "http://my.kuipi.com/ui";
 
@@ -86,85 +86,82 @@ public class MyXml
         }
         
         button.Handler = (Action)method.CreateDelegate(typeof(Action), scene);
-    }
-    
-    private static readonly Dictionary<(UIElement element, string propertyName), object> DataBindings = new();
-    
-    private static void OnBindableChanged<T>(T newValue)
-    {
-        foreach (var pair in DataBindings)
-        {
-            if (pair.Value is BindableProperty<T> bindable && EqualityComparer<T>.Default.Equals(bindable.Value, newValue))
-            {
-                var element = pair.Key.element;
-                var propName = pair.Key.propertyName;
-                var prop = element.GetType().GetProperty(propName);
-                if (prop is not null &&
-                    prop.CanWrite)
-                {
-                    prop.SetValue(element, newValue?.ToString());
-                }
-            }
-        }
-    }
+    }   
 
     private static void SetupDatabinding(MyScene scene, UIElement element)
     {
-        var properties = element.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        if (scene is not INotifyPropertyChanged sceneNotifier)
+            throw new Exception("Scene must implement INotifyPropertyChanged.");
 
-        foreach (var prop in properties)
+        if (element is not INotifyPropertyChanged uiNotifier)
+            throw new Exception("UIElement must implement INotifyPropertyChanged.");
+
+        var elementProps = element.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+        foreach (var uiProp in elementProps)
         {
-            if (prop.PropertyType != typeof(string) || !prop.CanRead || !prop.CanWrite)
+            // Step 1: Ignore non-string properties (not bindable)
+            if (uiProp.PropertyType != typeof(string) || !uiProp.CanRead || !uiProp.CanWrite)
+            {
                 continue;
+            }
 
-            var value = prop.GetValue(element) as string;
-            if (string.IsNullOrWhiteSpace(value) || !value.StartsWith("{") || !value.EndsWith("}"))
+            // Step 2: Ignore empty or string that do not start and end with { } (not a binding)
+            var rawValue = uiProp.GetValue(element) as string;
+            if (string.IsNullOrWhiteSpace(rawValue) || !rawValue.StartsWith("{") || !rawValue.EndsWith("}"))
+            {
                 continue;
+            }
 
-            string bindingName = value.Trim('{', '}');
+            // Step 3: Extract the property name from the binding
+            var bindingName = rawValue.Trim('{', '}');
 
-            var field = scene.GetType()
-                .GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
-                .FirstOrDefault(f =>
+            // Step 4: Fetch the property inside the scene from the binding name
+            var sceneProp = scene.GetType().GetProperty(bindingName,
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+            // Step 5: Invalid property name in users current scene.
+            if (sceneProp is null || !sceneProp.CanRead || !sceneProp.CanWrite)
+            {
+                throw new Exception($"Property '{bindingName}' not found in scene.");
+            }
+            
+            // Step 6: Remove the Bindable prefix from the UI Element property name
+            var uiPropertyNameActual = uiProp.Name.StartsWith("Bindable")
+                ? uiProp.Name.Substring("Bindable".Length)
+                : uiProp.Name;
+            
+            // Step 7: Fetch the property inside the UI Element
+            var uiPropActual = element.GetType().GetProperty(uiPropertyNameActual,
+                        BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            
+            // Step 8: Invalid property name in UI Element
+            if (uiPropActual is null || !uiPropActual.CanRead || !uiPropActual.CanWrite)
+            {
+                throw new Exception($"Failed to find underlying actual property '{bindingName}'.");
+            }
+
+            // Step 9: Setup subscriber for scene -> UI changes
+            sceneNotifier.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == bindingName)
                 {
-                    var attr = f.GetCustomAttribute<BindablePropertyAttribute>();
-                    return attr != null && attr.Name == bindingName;
-                });
+                    var newVal = sceneProp.GetValue(scene)?.ToString();
+                    uiProp.SetValue(element, newVal);
+                }
+            };
 
-            if (field == null)
-                throw new Exception($"No BindableProperty with name '{bindingName}' found in '{scene.GetType().Name}'.");
-
-            var bindableObj = field.GetValue(scene);
-            if (bindableObj == null)
-                throw new Exception($"Field '{bindingName}' is null.");
-
-            var bindableType = bindableObj.GetType();
-            var valueProperty = bindableType.GetProperty("Value");
-            var currentValue = valueProperty?.GetValue(bindableObj);
-
-            // Set the current value into the UI element's property
-            if (currentValue != null)
+            // Step 10: Setup subscriber for UI -> scene changes
+            uiNotifier.PropertyChanged += (s, e) =>
             {
-                prop.SetValue(element, currentValue.ToString());
-            }
-
-            // Subscribe to the ValueChanged event
-            var eventInfo = bindableType.GetEvent("ValueChanged");
-            if (eventInfo != null)
-            {
-                var handlerType = eventInfo.EventHandlerType!;
-                var method = typeof(MyXml).GetMethod(nameof(OnBindableChanged), BindingFlags.NonPublic | BindingFlags.Static)!
-                                               .MakeGenericMethod(valueProperty!.PropertyType);
-                var handlerDelegate = Delegate.CreateDelegate(handlerType, method);
-
-                eventInfo.AddEventHandler(bindableObj, handlerDelegate);
-
-                // Store the binding so updates can reflect
-                DataBindings[(element, prop.Name)] = bindableObj;
-            }
+                if (e.PropertyName == uiPropertyNameActual)
+                {
+                    var newVal = uiPropActual.GetValue(element);
+                    sceneProp.SetValue(scene, newVal);
+                }
+            };
         }
     }
-
 
     private static void InitializeUIElement(MyScene scene, UIElement element)
     {

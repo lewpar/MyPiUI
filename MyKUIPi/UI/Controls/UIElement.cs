@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Xml.Serialization;
 
 using MyKUIPi.Drawing;
@@ -5,7 +7,7 @@ using MyKUIPi.Primitives;
 
 namespace MyKUIPi.UI.Controls;
 
-public abstract class UIElement
+public abstract class UIElement : INotifyPropertyChanged
 {
     [XmlElement("Grid", typeof(GridElement))]
     [XmlElement("Absolute", typeof(AbsoluteElement))]
@@ -14,7 +16,7 @@ public abstract class UIElement
     [XmlElement("StackPanel", typeof(StackPanelElement))]
     [XmlElement("Image", typeof(ImageElement))]
     [XmlElement("TextArea", typeof(TextAreaElement))]
-    [XmlElement("Toggle", typeof(ToggleElement))]
+    [XmlElement("ToggleButton", typeof(ToggleButtonElement))]
     public List<UIElement> Children { get; } = new();
 
     [XmlIgnore]
@@ -149,10 +151,42 @@ public abstract class UIElement
 
     public bool TryParseBindableInt(string? input, out int result)
     {
-        if (!string.IsNullOrWhiteSpace(input) && !input.StartsWith("{") && int.TryParse(input, out result))
-            return true;
+        if (!string.IsNullOrWhiteSpace(input) &&
+            !input.StartsWith("{") &&
+            int.TryParse(input, out result))
+        {
+            return true;   
+        }
 
         result = 0;
         return false;
+    }
+
+    public bool TryParseBindableBool(string? input, out bool result)
+    {
+        if (!string.IsNullOrWhiteSpace(input) &&
+            !input.StartsWith("{") &&
+            bool.TryParse(input, out result))
+        {
+            return true;
+        }
+        
+        result = false;
+        return false;
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+        field = value;
+        OnPropertyChanged(propertyName);
+        return true;
     }
 }

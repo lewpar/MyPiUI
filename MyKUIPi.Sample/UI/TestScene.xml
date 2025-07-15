@@ -4,12 +4,13 @@
        xsi:schemaLocation="http://my.kuipi.com/ui ui.xsd">
     <Absolute>
         <StackPanel padding="1" background="#303030">
-            <StackPanel orientation="0" content-alignment="1" padding="10" background="#202020">
+            <StackPanel orientation="0" content-alignment="1" padding="10" gap="10" background="#202020">
                 <TextArea text="Hello, World!" />
                 <TextArea text="Foo" />
                 <TextArea text="Bar" />
                 <Rectangle width="200" height="2" background="#808080" />
-                <Toggle />
+                <ToggleButton is-toggled="{ToggleState}" />
+                <TextArea text="{ToggleStateString}" />
             </StackPanel>
         </StackPanel>
     </Absolute>

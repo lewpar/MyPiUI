@@ -27,7 +27,7 @@ public class SceneManager
                     return;
                 }
 
-                CurrentScene.UIFrame = MyXml.LoadUIElementsAsync(CurrentScene).GetAwaiter().GetResult();
+                CurrentScene.UIFrame = MyUI.LoadUIElementsAsync(CurrentScene).GetAwaiter().GetResult();
                 CurrentScene.UIFrame.Init();
             };   
         }
@@ -42,7 +42,7 @@ public class SceneManager
     {
         if (!string.IsNullOrWhiteSpace(scene.UI))
         {
-            var uiFrame = MyXml.LoadUIElementsAsync(scene).GetAwaiter().GetResult();
+            var uiFrame = MyUI.LoadUIElementsAsync(scene).GetAwaiter().GetResult();
             scene.UIFrame = uiFrame;
             
             uiFrame.Init();
