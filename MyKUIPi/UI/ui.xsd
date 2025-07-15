@@ -26,6 +26,7 @@
                 <xs:element ref="StackPanel" />
                 <xs:element ref="TextArea" />
                 <xs:element ref="Rectangle" />
+                <xs:element ref="ToggleButton" />
             </xs:choice>
 
             <xs:attribute name="x" type="BindableInt" />
@@ -96,6 +97,21 @@
         </xs:complexType>
     </xs:element>
 
+    <xs:element name="ToggleButton">
+        <xs:complexType>
+            <xs:attribute name="x" type="BindableInt" />
+            <xs:attribute name="y" type="BindableInt" />
+
+            <xs:attribute name="width" type="BindableInt" default="80" />
+            <xs:attribute name="height" type="BindableInt" default="20" />
+
+            <xs:attribute name="padding" type="BindableInt" default="4" />
+            <xs:attribute name="background" type="xs:string" />
+            
+            <xs:attribute name="is-toggled" type="BindableBool" />
+        </xs:complexType>
+    </xs:element>
+
     <xs:element name="Image">
         <xs:complexType>
             <xs:attribute name="source" type="xs:string" />
@@ -139,6 +155,12 @@
     <xs:simpleType name="BindableInt">
         <xs:restriction base="xs:string">
             <xs:pattern value="\{\w+\}|\d+" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="BindableBool">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="\{\w+\}|true|false" />
         </xs:restriction>
     </xs:simpleType>
 </xs:schema>

@@ -25,9 +25,6 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
       <None Remove="UI\OtherScene.xml" />
-      <Content Include="UI\OtherScene.xml">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
       <None Remove="UI\Images\raven.bmp" />
       <None Remove="UI\Images\raven5.png" />
       <None Remove="UI\Images\ravenmask.png" />
@@ -52,9 +49,6 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
       <None Remove="UI\SettingsScene.xml" />
-      <Content Include="UI\SettingsScene.xml">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
     </ItemGroup>
 
     <ItemGroup>
