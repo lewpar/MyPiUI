@@ -3,6 +3,40 @@
            targetNamespace="http://my.kuipi.com/ui"
            xmlns="http://my.kuipi.com/ui"
            elementFormDefault="qualified">
+
+    <xs:complexType name="UIElement">
+        <xs:attribute name="x" type="BindableInt" />
+        <xs:attribute name="y" type="BindableInt" />
+
+        <xs:attribute name="width" type="BindableInt" />
+        <xs:attribute name="height" type="BindableInt" />
+
+        <xs:attribute name="padding" type="BindableInt" />
+    </xs:complexType>
+
+    <xs:complexType name="StackPanelType">
+        <xs:complexContent>
+            <xs:extension base="UIElement">
+                <xs:sequence>
+                    <xs:choice minOccurs="1" maxOccurs="50">
+                        <xs:element ref="Button" />
+                        <xs:element ref="Image" />
+                        <xs:element ref="StackPanel" />
+                        <xs:element ref="TextArea" />
+                        <xs:element ref="Rectangle" />
+                        <xs:element ref="ToggleButton" />
+                    </xs:choice>
+                </xs:sequence>
+                <xs:attribute name="background" type="xs:string" />
+                <xs:attribute name="gap" type="BindableInt" />
+                <xs:attribute name="orientation" type="BindableInt" default="0" />
+                <xs:attribute name="content-alignment" type="BindableInt" default="0" />
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:element name="StackPanel" type="StackPanelType" />
+
     <xs:element name="Frame">
         <xs:complexType>
             <xs:choice minOccurs="1" maxOccurs="1">
@@ -10,38 +44,6 @@
                 <xs:element ref="Grid" />
                 <xs:element ref="StackPanel" />
             </xs:choice>
-
-            <xs:attribute name="width" type="BindableInt" />
-            <xs:attribute name="height" type="BindableInt" />
-
-            <xs:attribute name="padding" type="BindableInt" />
-        </xs:complexType>
-    </xs:element>
-
-    <xs:element name="StackPanel">
-        <xs:complexType>
-            <xs:choice minOccurs="1" maxOccurs="50">
-                <xs:element ref="Button" />
-                <xs:element ref="Image" />
-                <xs:element ref="StackPanel" />
-                <xs:element ref="TextArea" />
-                <xs:element ref="Rectangle" />
-                <xs:element ref="ToggleButton" />
-            </xs:choice>
-
-            <xs:attribute name="x" type="BindableInt" />
-            <xs:attribute name="y" type="BindableInt" />
-
-            <xs:attribute name="width" type="BindableInt" />
-            <xs:attribute name="height" type="BindableInt" />
-
-            <xs:attribute name="background" type="xs:string" />
-
-            <xs:attribute name="padding" type="BindableInt" />
-            <xs:attribute name="gap" type="BindableInt" />
-
-            <xs:attribute name="orientation" type="BindableInt" default="0" />
-            <xs:attribute name="content-alignment" type="BindableInt" default="0" />
         </xs:complexType>
     </xs:element>
 
