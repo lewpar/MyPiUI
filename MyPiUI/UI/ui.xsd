@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://my.kuipi.com/ui"
+           xmlns="http://my.kuipi.com/ui"
+           elementFormDefault="qualified">
+
+    <xs:complexType name="UIElement">
+        <xs:attribute name="x" type="BindableInt" />
+        <xs:attribute name="y" type="BindableInt" />
+
+        <xs:attribute name="width" type="BindableInt" />
+        <xs:attribute name="height" type="BindableInt" />
+
+        <xs:attribute name="padding" type="BindableInt" />
+    </xs:complexType>
+
+    <xs:complexType name="StackPanelType">
+        <xs:complexContent>
+            <xs:extension base="UIElement">
+                <xs:sequence>
+                    <xs:choice minOccurs="1" maxOccurs="50">
+                        <xs:element ref="Button" />
+                        <xs:element ref="Image" />
+                        <xs:element ref="StackPanel" />
+                        <xs:element ref="TextArea" />
+                        <xs:element ref="Rectangle" />
+                        <xs:element ref="ToggleButton" />
+                    </xs:choice>
+                </xs:sequence>
+                <xs:attribute name="background" type="xs:string" />
+                <xs:attribute name="gap" type="BindableInt" />
+                <xs:attribute name="orientation" type="BindableInt" default="0" />
+                <xs:attribute name="content-alignment" type="BindableInt" default="0" />
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:element name="StackPanel" type="StackPanelType" />
+
+    <xs:element name="Frame">
+        <xs:complexType>
+            <xs:choice minOccurs="1" maxOccurs="1">
+                <xs:element ref="Absolute" />
+                <xs:element ref="Grid" />
+                <xs:element ref="StackPanel" />
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="Rectangle">
+        <xs:complexType>
+            <xs:attribute name="x" type="BindableInt" />
+            <xs:attribute name="y" type="BindableInt" />
+            <xs:attribute name="width" type="BindableInt" use="required" />
+            <xs:attribute name="height" type="BindableInt" use="required" />
+            <xs:attribute name="background" type="xs:string" default="#202020" />
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="Grid">
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="50">
+                <xs:element ref="StackPanel" />
+                <xs:element ref="Rectangle" />
+                <xs:element ref="Button" />
+                <xs:element ref="Image" />
+                <xs:element ref="TextArea" />
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="Absolute">
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="50">
+                <xs:element ref="Grid" />
+                <xs:element ref="StackPanel" />
+                <xs:element ref="Rectangle" />
+                <xs:element ref="Button" />
+                <xs:element ref="Image" />
+                <xs:element ref="TextArea" />
+            </xs:choice>
+
+            <xs:attribute name="x" type="BindableInt" />
+            <xs:attribute name="y" type="BindableInt" />
+            <xs:attribute name="width" type="BindableInt" />
+            <xs:attribute name="height" type="BindableInt" />
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="TextArea">
+        <xs:complexType>
+            <xs:attribute name="text" type="xs:string" />
+            <xs:attribute name="font-size" type="xs:string" default="8" />
+
+            <xs:attribute name="x" type="BindableInt" />
+            <xs:attribute name="y" type="BindableInt" />
+
+            <xs:attribute name="foreground" type="xs:string" default="#ffffff" />
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="ToggleButton">
+        <xs:complexType>
+            <xs:attribute name="x" type="BindableInt" />
+            <xs:attribute name="y" type="BindableInt" />
+
+            <xs:attribute name="width" type="BindableInt" default="80" />
+            <xs:attribute name="height" type="BindableInt" default="20" />
+
+            <xs:attribute name="padding" type="BindableInt" default="4" />
+            <xs:attribute name="background" type="xs:string" />
+
+            <xs:attribute name="is-toggled" type="BindableBool" />
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="Image">
+        <xs:complexType>
+            <xs:attribute name="source" type="xs:string" />
+
+            <xs:attribute name="x" type="BindableInt" />
+            <xs:attribute name="y" type="BindableInt" />
+
+            <xs:attribute name="width" type="xs:int" />
+            <xs:attribute name="height" type="xs:int" />
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="Button">
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="1">
+                <xs:element ref="Image" />
+            </xs:choice>
+
+            <xs:attribute name="handler" type="xs:string" />
+
+            <xs:attribute name="text" type="xs:string" />
+            <xs:attribute name="font-size" type="BindableInt" default="12" />
+
+            <xs:attribute name="background" type="xs:string" default="#1e90ff" />
+            <xs:attribute name="background-hover" type="xs:string" default="#4ba6ff" />
+            <xs:attribute name="foreground" type="xs:string" default="#ffffff" />
+
+            <xs:attribute name="border-size" type="BindableInt" />
+            <xs:attribute name="border-color" type="xs:string" default="#f0f0f0" />
+
+            <xs:attribute name="x" type="BindableInt" />
+            <xs:attribute name="y" type="BindableInt" />
+
+            <xs:attribute name="width" type="BindableInt" default="0" />
+            <xs:attribute name="height" type="BindableInt" default="0" />
+
+            <xs:attribute name="padding" type="BindableInt" default="4" />
+        </xs:complexType>
+    </xs:element>
+
+    <xs:simpleType name="BindableInt">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="\{\w+\}|\d+" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="BindableBool">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="\{\w+\}|true|false" />
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>
