@@ -1,6 +1,6 @@
 ![Logo](.github/assets/logo.png)
 
-A Kiosk UI framework for the Raspberry Pi using the Linux Frame Buffer device (`/dev/fb0`) for rendering.
+A UI framework for the Raspberry Pi using the Linux Frame Buffer device (`/dev/fb0`) for rendering.
 
 ## Usage
 To get started, check out the sample project [here](https://github.com/lewpar/MyKUIPi/tree/master/MyKUIPi.Sample).
