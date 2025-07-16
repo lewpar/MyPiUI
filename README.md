@@ -3,7 +3,7 @@
 A UI framework for the Raspberry Pi using the Linux Frame Buffer device (`/dev/fb0`) for rendering.
 
 ## Usage
-To get started, check out the sample project [here](https://github.com/lewpar/MyKUIPi/tree/master/MyKUIPi.Sample).
+To get started, check out the sample project [here](./MyPiUI.Sample).
 
 NuGet package coming soon..
 
