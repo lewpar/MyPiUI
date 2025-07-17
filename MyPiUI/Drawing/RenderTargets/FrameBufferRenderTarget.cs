@@ -10,6 +10,8 @@ public class FrameBufferRenderTarget : IRenderTarget, IDisposable
     private readonly MemoryMappedFile _frameBufferMemoryMap;
     private readonly MemoryMappedViewAccessor _frameBufferAccessor;
     
+    private readonly int _expectedBufferSize;
+    
     public FrameBufferRenderTarget(string frameBufferDevicePath)
     {
         if (string.IsNullOrWhiteSpace(frameBufferDevicePath))
@@ -30,6 +32,8 @@ public class FrameBufferRenderTarget : IRenderTarget, IDisposable
 
         var bytesPerPixel = frameBufferInfo.Depth / 8;
         var frameBufferSize = frameBufferInfo.Width * frameBufferInfo.VirtualHeight * bytesPerPixel;
+
+        _expectedBufferSize = frameBufferSize;
         
         _frameBufferStream = new FileStream(frameBufferDevicePath, 
             FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
@@ -42,6 +46,11 @@ public class FrameBufferRenderTarget : IRenderTarget, IDisposable
     
     public void SwapBuffer(byte[] buffer)
     {
+        if (buffer.Length != _expectedBufferSize)
+        {
+            throw new Exception($"Invalid buffer size. Expected size of '{_expectedBufferSize}' got '{buffer.Length}'.");
+        }
+        
         unsafe
         {
             fixed (byte* src = buffer)

@@ -30,7 +30,7 @@ public class DrawBuffer
         _bitsPerPixel = bitsPerPixel;
         _bytesPerPixel =  _bitsPerPixel / 8;
         
-        _backBuffer = new byte[width * height * bitsPerPixel];
+        _backBuffer = new byte[width * height * _bytesPerPixel];
         
         _dirtyRegions = new List<Rectangle>();
         
