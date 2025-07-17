@@ -4,25 +4,25 @@ namespace MyPiUI.Drawing.RenderTargets;
 
 public class RaylibRenderTarget : IRenderTarget, IDisposable
 {
-    private readonly int _width;
-    private readonly int _height;
-    private readonly int _bpp; // bytes per pixel (e.g. 4 for 32-bit)
     private readonly Texture2D _texture;
     private readonly Image _image;
     
     private readonly Color? _backgroundColor;
+
+    private readonly int _expectedBufferSize;
     
     public RaylibRenderTarget(int width, int height, int bpp = 32)
     {
         unsafe
         {
-            _width = width;
-            _height = height;
-            _bpp = 32;
+            var bytesPerPixel = bpp / 8;
+            var bufferSize = width * height * bytesPerPixel;
+            
+            _expectedBufferSize = bufferSize;
 
             PixelFormat? pixelFormat;
 
-            switch (_bpp)
+            switch (bpp)
             {
                 case 16:
                     pixelFormat = PixelFormat.UncompressedR5G6B5;
@@ -37,16 +37,16 @@ public class RaylibRenderTarget : IRenderTarget, IDisposable
                         "Unsupported bit depth for raylib render target. Only 16-bit and 32-bit colors are supported.");
             }
 
-            Raylib.InitWindow(_width, _height, $"Framebuffer Viewer ({width}x{height})");
+            Raylib.InitWindow(width, height, $"Framebuffer Viewer ({width}x{height})");
             Raylib.SetTargetFPS(60);
             Raylib.SetWindowMinSize(width, height);
             Raylib.SetWindowMaxSize(width, height);
 
             _image = new Image
             {
-                Data = Raylib.MemAlloc((uint)(_width * _height * _bpp)),
-                Width = _width,
-                Height = _height,
+                Data = Raylib.MemAlloc((uint)bufferSize),
+                Width = width,
+                Height = height,
                 Mipmaps = 1,
                 Format = pixelFormat.Value
             };
@@ -68,9 +68,11 @@ public class RaylibRenderTarget : IRenderTarget, IDisposable
     
     public void SwapBuffer(byte[] buffer)
     {
-        if (buffer.Length != _width * _height * _bpp)
-            throw new ArgumentException("Framebuffer size does not match dimensions.");
-
+        if (buffer.Length != _expectedBufferSize)
+        {
+            throw new Exception($"Invalid buffer size. Expected size of '{_expectedBufferSize}' got '{buffer.Length}'.");
+        }
+        
         if (Raylib.WindowShouldClose())
         {
             Raylib.CloseWindow();
@@ -80,7 +82,7 @@ public class RaylibRenderTarget : IRenderTarget, IDisposable
         {
             fixed (byte* bufferPtr = buffer)
             {
-                Raylib.UpdateTexture(_texture, (void*)bufferPtr);
+                Raylib.UpdateTexture(_texture, bufferPtr);
             }
         }
 
