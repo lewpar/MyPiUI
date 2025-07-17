@@ -10,7 +10,7 @@ public class FrameBufferRenderTarget : IRenderTarget, IDisposable
     private readonly MemoryMappedFile _frameBufferMemoryMap;
     private readonly MemoryMappedViewAccessor _frameBufferAccessor;
     
-    private int _expectedBufferSize;
+    private readonly int _expectedBufferSize;
     
     public FrameBufferRenderTarget(string frameBufferDevicePath)
     {
