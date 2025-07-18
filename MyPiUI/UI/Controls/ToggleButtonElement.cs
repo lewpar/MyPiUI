@@ -46,7 +46,7 @@ public class ToggleButtonElement : UIElement
         _fallbackToggleActiveColor = Color.FromHex("e0e0e0");
 
         _timeSinceLastTouch = DateTime.Now;
-        _delayBetweenTouchesMs = 500;
+        _delayBetweenTouchesMs = 250;
     }
 
     public override void Update(float deltaTimeMs)
