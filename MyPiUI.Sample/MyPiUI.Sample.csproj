@@ -51,8 +51,4 @@
       <None Remove="UI\SettingsScene.xml" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="UI\Images\" />
-    </ItemGroup>
-
 </Project>
