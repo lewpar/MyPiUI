@@ -49,6 +49,10 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
       <None Remove="UI\SettingsScene.xml" />
+      <None Remove="UI\SecondaryScene.xml" />
+      <Content Include="UI\SecondaryScene.xml">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
 </Project>
