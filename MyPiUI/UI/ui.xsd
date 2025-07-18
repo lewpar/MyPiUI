@@ -150,7 +150,7 @@
             <xs:attribute name="width" type="BindableInt" default="0" />
             <xs:attribute name="height" type="BindableInt" default="0" />
 
-            <xs:attribute name="padding" type="BindableInt" default="4" />
+            <xs:attribute name="padding" type="BindableInt" default="8" />
         </xs:complexType>
     </xs:element>
 

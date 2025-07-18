@@ -4,13 +4,8 @@
        xsi:schemaLocation="http://my.kuipi.com/ui ui.xsd">
     <StackPanel padding="1" background="#303030">
         <StackPanel orientation="0" content-alignment="1" padding="10" gap="10" background="#202020">
-            <TextArea text="Hello, World!" />
-            <TextArea text="Foo" />
-            <TextArea text="Bar" />
-            <Rectangle width="200" height="2" background="#808080" />
-            <ToggleButton is-toggled="{ToggleState}" width="50" />
-            <TextArea text="{ToggleStateString}" />
-            <Button handler="SwitchToSecondaryScene" text="Switch Scene" padding="8" />
+            <TextArea text="Hello to the secondary scene!" />
+            <Button handler="SwitchToPrimaryScene" text="Go Back" padding="8" />
         </StackPanel>
     </StackPanel>
 </Frame>
