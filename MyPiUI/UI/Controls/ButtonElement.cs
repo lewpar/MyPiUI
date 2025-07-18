@@ -88,7 +88,7 @@ public class ButtonElement : UIElement
         if (timeDelta.Milliseconds >= _delayBetweenTouchesMs)
         {
             Handler?.Invoke();
-            _timeSinceLastTouch =  DateTime.Now;   
+            _timeSinceLastTouch = DateTime.Now;
         }
     }
 
