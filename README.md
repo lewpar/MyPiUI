@@ -12,9 +12,10 @@ NuGet package coming soon..
   - Automatic detection of touch screen/pad device.
   - Touch calibration.
 - 16-bit and 32-bit color support.
+  - RGB, RGBA, BGRA
 - XML powered UI
   - Automatic wiring of button handlers
-  - Planned: Data binding
+  - Two-way data binding
 
 ## Dependencies
 - `fbset` - Used to get the frame buffer information (size, color depth, etc..)
