@@ -70,10 +70,26 @@ public class ButtonElement : UIElement
     public Action? Handler { get; set; }
 
     private ImageElement? _image;
+    
+    private DateTime _timeSinceLastTouch;
+    private int _delayBetweenTouchesMs;
+
+    public ButtonElement()
+    {
+        _timeSinceLastTouch = DateTime.Now;
+        _delayBetweenTouchesMs = 500;
+    }
 
     public void OnTouch()
     {
-        Handler?.Invoke();
+        var now = DateTime.Now;
+        var timeDelta = now - _timeSinceLastTouch;
+
+        if (timeDelta.Milliseconds >= _delayBetweenTouchesMs)
+        {
+            Handler?.Invoke();
+            _timeSinceLastTouch =  DateTime.Now;   
+        }
     }
 
     public override void Init()
