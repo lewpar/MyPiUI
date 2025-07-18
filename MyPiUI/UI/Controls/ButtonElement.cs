@@ -117,7 +117,7 @@ public class ButtonElement : UIElement
         bool isScreenTouched = InputManager.IsTouching();
         _currentTouchState = InputManager.IsTouching(X, Y, Width, Height);
 
-        if (!_wasTouchingScreenLastFrame && _currentTouchState)
+        if (_currentTouchState)
         {
             OnTouch();
         }
