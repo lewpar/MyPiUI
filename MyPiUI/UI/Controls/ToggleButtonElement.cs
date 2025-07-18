@@ -16,6 +16,9 @@ public class ToggleButtonElement : UIElement
     
     private string? _bindableIsToggled;
     
+    private DateTime _timeSinceLastTouch;
+    private int _delayBetweenTouchesMs;
+    
     [XmlAttribute("is-toggled")]
     public string? BindableIsToggled
     {
@@ -41,15 +44,25 @@ public class ToggleButtonElement : UIElement
         _fallbackFillColor = Color.FromHex("404040");
         _fallbackToggleInactiveColor = Color.FromHex("606060");
         _fallbackToggleActiveColor = Color.FromHex("e0e0e0");
+
+        _timeSinceLastTouch = DateTime.Now;
+        _delayBetweenTouchesMs = 500;
     }
 
     public override void Update(float deltaTimeMs)
     {
         _currentTouchState = InputManager.IsTouching(X, Y, Width, Height);
-
+        
         if (_currentTouchState && !_prevTouchState)
         {
-            IsToggled = !IsToggled;
+            var now = DateTime.Now;
+            var timeDelta = now - _timeSinceLastTouch;
+
+            if (timeDelta.Milliseconds >= _delayBetweenTouchesMs)
+            {
+                IsToggled = !IsToggled;
+                _timeSinceLastTouch =  DateTime.Now;   
+            }
         }
         
         _prevTouchState = _currentTouchState;
