@@ -2,7 +2,7 @@ namespace MyPiUI.Drawing;
 
 public class FrameBufferFont
 {
-    public static readonly Dictionary<char, byte[]> Basic8x8 = new Dictionary<char, byte[]>
+    public static readonly Dictionary<char, byte[]> Basic8X8 = new Dictionary<char, byte[]>
     {
         [' '] = new byte[] {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
         ['_'] = new byte[] {0x00,0x00,0x00,0x00,0x00,0x00,0x7E,0x00},

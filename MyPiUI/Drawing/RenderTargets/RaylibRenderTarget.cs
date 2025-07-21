@@ -20,22 +20,7 @@ public class RaylibRenderTarget : IRenderTarget, IDisposable
             
             _expectedBufferSize = bufferSize;
 
-            PixelFormat? pixelFormat;
-
-            switch (bpp)
-            {
-                case 16:
-                    pixelFormat = PixelFormat.UncompressedR5G6B5;
-                    break;
-                
-                case 32:
-                    pixelFormat = PixelFormat.UncompressedR8G8B8A8;
-                    break;
-                
-                default:
-                    throw new Exception(
-                        "Unsupported bit depth for raylib render target. Only 16-bit and 32-bit colors are supported.");
-            }
+            PixelFormat pixelFormat = PixelFormat.UncompressedR8G8B8A8;
 
             Raylib.InitWindow(width, height, $"Framebuffer Viewer ({width}x{height})");
             Raylib.SetTargetFPS(60);
@@ -48,7 +33,7 @@ public class RaylibRenderTarget : IRenderTarget, IDisposable
                 Width = width,
                 Height = height,
                 Mipmaps = 1,
-                Format = pixelFormat.Value
+                Format = pixelFormat
             };
 
             _texture = Raylib.LoadTextureFromImage(_image);
@@ -91,7 +76,25 @@ public class RaylibRenderTarget : IRenderTarget, IDisposable
         Raylib.DrawTexture(_texture, 0, 0, Color.White);
         Raylib.EndDrawing();
     }
-    
+
+    public MyGraphicsContext CreateGraphicsContext()
+    {
+        var pixelFormat = GetPixelFormat();
+        
+        return new MyGraphicsContext()
+        {
+            PixelFormat = pixelFormat,
+            BitsPerPixel = pixelFormat.GetBitsPerPixel(),
+            Width = _image.Width,
+            Height = _image.Height,
+        };
+    }
+
+    private MyPixelFormat GetPixelFormat()
+    {
+        return MyPixelFormat.R8G8B8A8;
+    }
+
     public void Dispose()
     {
         unsafe

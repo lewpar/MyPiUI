@@ -21,6 +21,12 @@ public class MyEngine : IDisposable
 
     public InputManager InputManager { get => _inputManager; }
     private InputManager _inputManager;
+
+    public MyGraphicsContext GraphicsContext
+    {
+        get;
+        init;
+    }
     
     private IRenderTarget _renderTarget;
     private DrawBuffer _drawBuffer;
@@ -61,7 +67,8 @@ public class MyEngine : IDisposable
                 throw new Exception("Invalid render mode, no render target could be selected.");
         }
 
-        _drawBuffer = new DrawBuffer(MyOptions.RenderWidth, MyOptions.RenderHeight, MyOptions.PixelFormat);
+        GraphicsContext = _renderTarget.CreateGraphicsContext();
+        _drawBuffer = new DrawBuffer(GraphicsContext);
         _drawBuffer.SetClearColor(myOptions.BackgroundColor);
         _drawBuffer.Clear();
     }

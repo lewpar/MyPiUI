@@ -119,11 +119,11 @@ public abstract class UIElement : INotifyPropertyChanged
         set => Background = string.IsNullOrWhiteSpace(value) ? null : Color.FromHex(value);
     }
 
-    public virtual void Init()
+    public virtual void Init(MyGraphicsContext graphicsContext)
     {
         foreach (var child in Children)
         {
-            child.Init();
+            child.Init(graphicsContext);
         }
     }
 

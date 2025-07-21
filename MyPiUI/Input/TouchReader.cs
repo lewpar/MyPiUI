@@ -5,16 +5,16 @@ namespace MyPiUI.Input;
 
 public class TouchReader : InputDeviceReader<TouchReader.InputEvent>
 {
-    private const ushort EV_ABS = 0x03;
-    private const ushort EV_KEY = 0x01;
-    private const ushort EV_SYN = 0x00;
+    private const ushort EvAbs = 0x03;
+    private const ushort EvKey = 0x01;
+    private const ushort EvSyn = 0x00;
 
-    private const ushort ABS_X = 0x00;
-    private const ushort ABS_Y = 0x01;
-    private const ushort ABS_MT_POSITION_X = 0x35;
-    private const ushort ABS_MT_POSITION_Y = 0x36;
+    private const ushort AbsX = 0x00;
+    private const ushort AbsY = 0x01;
+    private const ushort AbsMtPositionX = 0x35;
+    private const ushort AbsMtPositionY = 0x36;
 
-    private const ushort BTN_TOUCH = 0x14a;
+    private const ushort BtnTouch = 0x14a;
 
     public int TouchX { get; private set; }
     public int TouchY { get; private set; }
@@ -46,17 +46,17 @@ public class TouchReader : InputDeviceReader<TouchReader.InputEvent>
         {
             switch (inputEvent.Type)
             {
-                case EV_ABS:
-                    if (inputEvent.Code == ABS_X || inputEvent.Code == ABS_MT_POSITION_X)
+                case EvAbs:
+                    if (inputEvent.Code == AbsX || inputEvent.Code == AbsMtPositionX)
                         TouchX = inputEvent.Value;
-                    else if (inputEvent.Code == ABS_Y || inputEvent.Code == ABS_MT_POSITION_Y)
+                    else if (inputEvent.Code == AbsY || inputEvent.Code == AbsMtPositionY)
                         TouchY = inputEvent.Value;
                     break;
-                case EV_KEY:
-                    if (inputEvent.Code == BTN_TOUCH)
+                case EvKey:
+                    if (inputEvent.Code == BtnTouch)
                         IsTouching = inputEvent.Value != 0;
                     break;
-                case EV_SYN:
+                case EvSyn:
                     // Touch frame complete
                     break;
             }
@@ -87,8 +87,8 @@ public class TouchReader : InputDeviceReader<TouchReader.InputEvent>
                 return (0f, 0f, IsTouching); // fallback if calibration is invalid
             }
 
-            float normX = Math.Clamp((float)(TouchX - config.MinTouchX) / rangeX, 0f, 1f);
-            float normY = Math.Clamp((float)(TouchY - config.MinTouchY) / rangeY, 0f, 1f);
+            float normX = Math.Clamp((TouchX - config.MinTouchX) / rangeX, 0f, 1f);
+            float normY = Math.Clamp((TouchY - config.MinTouchY) / rangeY, 0f, 1f);
 
             return (normX, normY, IsTouching);
         }

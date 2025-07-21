@@ -11,7 +11,7 @@ public class FrameBufferInfo
 
     public int[] Timings { get; set; } = new int[7];
 
-    public RgbaInfo? Rgba { get; set; }
+    public RgbaInfo? PixelFormat { get; set; }
 
     public class RgbaInfo
     {
