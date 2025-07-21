@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace MyPiUI.Primitives;
 
 public struct Color
@@ -40,46 +38,29 @@ public struct Color
         return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
     }
     
-    public static byte[] ToRGBA(byte r, byte g, byte b)
+    public static byte[] ToRgba(byte r, byte g, byte b)
     {
         return new byte[] { r, g, b, 255 /* UNUSED ALPHA CHANNEL */ };
     }
     
-    public static byte[] ToRGBA(Color color)
-    {
-        return new byte[] { color.R, color.G, color.B, 255 /* UNUSED ALPHA CHANNEL */ };
-    }
-    
-    public static byte[] ToBGRA(byte r, byte g, byte b)
+    public static byte[] ToBgra(byte r, byte g, byte b)
     {
         return new byte[] { b, g, r, 255 /* UNUSED ALPHA CHANNEL */ };
     }
     
-    public static byte[] ToBGRA(Color color)
-    {
-        return new byte[] { color.B, color.G, color.R, 255 /* UNUSED ALPHA CHANNEL */ };
-    }
-    
-    public static void FromRGB565(ushort pixel, out byte r, out byte g, out byte b)
+    public static void FromRgb565(ushort pixel, out byte r, out byte g, out byte b)
     {
         r = (byte)(((pixel >> 11) & 0x1F) * 255 / 31);
         g = (byte)(((pixel >> 5) & 0x3F) * 255 / 63);
         b = (byte)((pixel & 0x1F) * 255 / 31);
     }
 
-    public static void FromBGRA(byte[] data, int index, out byte r, out byte g, out byte b, out byte a)
+    public static void FromBgra(byte[] data, int index, out byte r, out byte g, out byte b, out byte a)
     {
         b = data[index + 0];
         g = data[index + 1];
         r = data[index + 2];
         a = data[index + 3];
-    }
-
-    public static void FromRGBA(byte[] data, int index, out byte r, out byte g, out byte b)
-    {
-        r = data[index + 0];
-        g = data[index + 1];
-        b = data[index + 2];
     }
     
     public static byte[] To16Bit(byte r, byte g, byte b)

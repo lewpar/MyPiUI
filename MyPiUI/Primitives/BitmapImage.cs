@@ -30,15 +30,15 @@ public class BitmapImage
 
         if (bpp == 16)
         {
-            var result = ConvertToRGB565WithAlpha(image, width, height);
+            var result = ConvertToRgb565WithAlpha(image, width, height);
             return new BitmapImage(width, height, result.rgb565, result.alpha);
         }
 
-        byte[] bgra = ConvertToBGRA32(image, width, height);
+        byte[] bgra = ConvertToBgra32(image, width, height);
         return new BitmapImage(width, height, bgra, null);
     }
     
-    private static (byte[] rgb565, byte[] alpha) ConvertToRGB565WithAlpha(Image<Argb32> image, int width, int height)
+    private static (byte[] rgb565, byte[] alpha) ConvertToRgb565WithAlpha(Image<Argb32> image, int width, int height)
     {
         byte[] rgb565 = new byte[width * height * 2];
         byte[] alpha = new byte[width * height];
@@ -67,7 +67,7 @@ public class BitmapImage
         return (rgb565, alpha);
     }
     
-    private static byte[] ConvertToBGRA32(Image<Argb32> image, int width, int height)
+    private static byte[] ConvertToBgra32(Image<Argb32> image, int width, int height)
     {
         byte[] data = new byte[width * height * 4];
 

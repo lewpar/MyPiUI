@@ -141,7 +141,7 @@ public class MyUI
             }
 
             // Step 9: Setup subscriber for scene -> UI changes
-            sceneNotifier.PropertyChanged += (s, e) =>
+            sceneNotifier.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == bindingName)
                 {
@@ -151,7 +151,7 @@ public class MyUI
             };
 
             // Step 10: Setup subscriber for UI -> scene changes
-            uiNotifier.PropertyChanged += (s, e) =>
+            uiNotifier.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == uiPropertyNameActual)
                 {

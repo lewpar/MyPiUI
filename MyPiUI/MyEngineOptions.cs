@@ -13,7 +13,6 @@ public class MyEngineOptions
     public Color BackgroundColor { get; init; } = Color.Black;
     public Color ForegroundColor { get; init; } = Color.White;
     public RenderMode RenderMode { get; init; } = RenderMode.FrameBuffer;
-    public MyPixelFormat PixelFormat { get; init; } = MyPixelFormat.B8G8R8A8;
 
     public int RenderWidth { get; init; } = 1920;
     public int RenderHeight { get; init; } = 1080;

@@ -61,7 +61,6 @@ public class ButtonElement : UIElement
     }
 
     private bool _currentTouchState;
-    private bool _wasTouchingScreenLastFrame;
 
     [XmlAttribute("handler")]
     public string? HandlerName { get; set; }
@@ -92,7 +91,7 @@ public class ButtonElement : UIElement
         }
     }
 
-    public override void Init()
+    public override void Init(MyGraphicsContext graphicsContext)
     {
         RecalculateBounds();
         
@@ -103,6 +102,8 @@ public class ButtonElement : UIElement
             {
                 _image = image;
             }
+            
+            base.Init(graphicsContext);
         }
     }
 
@@ -114,15 +115,12 @@ public class ButtonElement : UIElement
 
     public override void Update(float deltaTimeMs)
     {
-        bool isScreenTouched = InputManager.IsTouching();
         _currentTouchState = InputManager.IsTouching(X, Y, Width, Height);
 
         if (_currentTouchState)
         {
             OnTouch();
         }
-
-        _wasTouchingScreenLastFrame = isScreenTouched;
 
         base.Update(deltaTimeMs);
     }

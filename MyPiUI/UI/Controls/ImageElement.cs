@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using System.Xml.Serialization;
+
 using MyPiUI.Drawing;
 using MyPiUI.Primitives;
 
@@ -11,9 +13,18 @@ public class ImageElement : UIElement
     
     [XmlIgnore]
     public BitmapImage? Image { get; private set; }
+    
+    private MyGraphicsContext? _graphicsContext;
+
+    public override void Init(MyGraphicsContext graphicsContext)
+    {
+        _graphicsContext = graphicsContext;
+    }
 
     public void LoadImage()
     {
+        Debug.Assert(_graphicsContext is not null);
+        
         if (string.IsNullOrWhiteSpace(Source))
         {
             throw new Exception("Source cannot be null or empty.");
@@ -21,24 +32,7 @@ public class ImageElement : UIElement
 
         if (!File.Exists(Source))
         {
-            throw new  FileNotFoundException("Source file not found.", Source);
-        }
-
-        int? bitsPerPixel = null;
-
-        switch (MyEngine.Instance?.MyOptions.PixelFormat)
-        {
-            case MyPixelFormat.R8G8B8A8:
-            case MyPixelFormat.B8G8R8A8:
-                bitsPerPixel = 32;
-                break;
-            
-            case MyPixelFormat.R5G6B5:
-                bitsPerPixel = 16;
-                break;
-            
-            default:
-                throw new Exception("Unsupported pixel format.");
+            throw new FileNotFoundException("Source file not found.", Source);
         }
 
         var width = Width;
@@ -56,7 +50,7 @@ public class ImageElement : UIElement
             height = Parent.Height;
         }
         
-        Image = BitmapImage.Load(Source, bitsPerPixel.Value, width, height);
+        Image = BitmapImage.Load(Source, _graphicsContext.BitsPerPixel, width, height);
         
         Width = Image.Width;
         Height = Image.Height;

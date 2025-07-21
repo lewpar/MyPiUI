@@ -1,4 +1,5 @@
-using System.Security.Cryptography;
+using System.Diagnostics;
+
 using MyPiUI.UI;
 
 namespace MyPiUI.Scene;
@@ -8,8 +9,8 @@ public class SceneManager
     public static SceneManager? Instance { get; set; }
     
     public MyScene? CurrentScene => _scenes.Count > 0 ? _scenes.Peek() : null;
-    private Stack<MyScene> _scenes;
-    private SceneFileWatcher? _sceneWatcher;
+    private readonly Stack<MyScene> _scenes;
+    private readonly SceneFileWatcher? _sceneWatcher;
 
     public SceneManager(MyEngineOptions myOptions)
     {
@@ -18,17 +19,7 @@ public class SceneManager
         if (myOptions.HotReload)
         {
             _sceneWatcher = new SceneFileWatcher();
-            _sceneWatcher.SceneContentChanged += (_, _) =>
-            {
-                if (CurrentScene is null ||
-                    string.IsNullOrWhiteSpace(CurrentScene.UI))
-                {
-                    return;
-                }
-
-                CurrentScene.UIFrame = MyUI.LoadUIElementsAsync(CurrentScene).GetAwaiter().GetResult();
-                CurrentScene.UIFrame.Init();
-            };   
+            _sceneWatcher.SceneContentChanged += SceneWatcherOnSceneContentChanged;
         }
 
         if (Instance is null)
@@ -37,14 +28,30 @@ public class SceneManager
         }
     }
 
+    private void SceneWatcherOnSceneContentChanged(object? sender, EventArgs e)
+    {
+        Debug.Assert(MyEngine.Instance is not null);
+        
+        if (CurrentScene is null ||
+            string.IsNullOrWhiteSpace(CurrentScene.UI))
+        {
+            return;
+        }
+
+        CurrentScene.UIFrame = MyUI.LoadUIElementsAsync(CurrentScene).GetAwaiter().GetResult();
+        CurrentScene.UIFrame.Init(MyEngine.Instance.GraphicsContext);
+    }
+
     public void Push(MyScene scene)
     {
+        Debug.Assert(MyEngine.Instance is not null);
+        
         if (!string.IsNullOrWhiteSpace(scene.UI))
         {
             var uiFrame = MyUI.LoadUIElementsAsync(scene).GetAwaiter().GetResult();
             scene.UIFrame = uiFrame;
             
-            uiFrame.Init();
+            uiFrame.Init(MyEngine.Instance.GraphicsContext);
 
             if (_sceneWatcher is not null)
             {

@@ -6,7 +6,7 @@ namespace MyPiUI.UI.Controls;
 [XmlRoot("Frame", Namespace = MyUI.Namespace)]
 public class FrameElement : UIElement
 {
-    public override void Init()
+    public override void Init(MyGraphicsContext graphicsContext)
     {
         if (Children.Count < 1)
         {
@@ -20,7 +20,7 @@ public class FrameElement : UIElement
 
         if (Width == 0)
         {
-            Width = MyEngine.Instance?.MyOptions?.RenderWidth ?? 0;
+            Width = MyEngine.Instance?.MyOptions.RenderWidth ?? 0;
         }
 
         var child = Children[0];
@@ -37,7 +37,7 @@ public class FrameElement : UIElement
             child.Height = Padding != 0 ? Height - (Padding * 2) : Height;
         }
         
-        child.Init();
+        child.Init(graphicsContext);
     }
 
     public override void Draw(DrawBuffer buffer)

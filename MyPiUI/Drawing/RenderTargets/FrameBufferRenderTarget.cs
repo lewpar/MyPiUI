@@ -11,7 +11,8 @@ public class FrameBufferRenderTarget : IRenderTarget, IDisposable
     private readonly MemoryMappedViewAccessor _frameBufferAccessor;
     
     private readonly int _expectedBufferSize;
-    
+    private readonly FrameBufferInfo? _frameBufferInfo;
+
     public FrameBufferRenderTarget(string frameBufferDevicePath)
     {
         if (string.IsNullOrWhiteSpace(frameBufferDevicePath))
@@ -24,14 +25,14 @@ public class FrameBufferRenderTarget : IRenderTarget, IDisposable
             throw new FileNotFoundException($"No frame buffer device at path '{frameBufferDevicePath}' exists.");
         }
         
-        var frameBufferInfo = GetFrameBufferInfo();
-        if (frameBufferInfo is null)
+        _frameBufferInfo = GetFrameBufferInfo();
+        if (_frameBufferInfo is null)
         {
             throw new Exception("Failed to get frame buffer info. Is `fbset` installed?");
         }
 
-        var bytesPerPixel = frameBufferInfo.Depth / 8;
-        var frameBufferSize = frameBufferInfo.Width * frameBufferInfo.VirtualHeight * bytesPerPixel;
+        var bytesPerPixel = _frameBufferInfo.Depth / 8;
+        var frameBufferSize = _frameBufferInfo.Width * _frameBufferInfo.VirtualHeight * bytesPerPixel;
 
         _expectedBufferSize = frameBufferSize;
         
@@ -68,7 +69,59 @@ public class FrameBufferRenderTarget : IRenderTarget, IDisposable
             }
         }
     }
-    
+
+    public MyGraphicsContext CreateGraphicsContext()
+    {
+        Debug.Assert(_frameBufferInfo is not null);
+        
+        var pixelFormat = GetPixelFormat();
+        
+        return new MyGraphicsContext()
+        {
+            PixelFormat = pixelFormat,
+            BitsPerPixel = pixelFormat.GetBitsPerPixel(),
+            Width = _frameBufferInfo.Width,
+            Height = _frameBufferInfo.Height
+        };
+    }
+
+    private MyPixelFormat GetPixelFormat()
+    {
+        var frameBufferInfo = GetFrameBufferInfo();
+        if (frameBufferInfo is null)
+        {
+            throw new Exception("Failed to get FrameBuffer information. Ensure 'fbset' is installed on the system.");
+        }
+
+        var pixelFormat = frameBufferInfo.PixelFormat;
+        if (pixelFormat is null)
+        {
+            throw new Exception("Failed to get pixel formatting for frame buffer.");
+        }
+
+        if (frameBufferInfo.Depth == 32)
+        {
+            if (pixelFormat is { RedOffset: 0, GreenOffset: 8, BlueOffset: 16, AlphaOffset: 24 })
+            {
+                return MyPixelFormat.R8G8B8A8;
+            }
+            
+            if (pixelFormat is { BlueOffset: 0, GreenOffset: 8, RedOffset: 16, AlphaOffset: 24 })
+            {
+                return MyPixelFormat.B8G8R8A8;
+            }
+        }
+        else if(frameBufferInfo.Depth == 16)
+        {
+            if (pixelFormat is { RedOffset: 0, GreenOffset: 5, BlueOffset: 10 })
+            {
+                return MyPixelFormat.R5G6B5;
+            }
+        }
+
+        throw new Exception("No supported pixel format could be found.");
+    }
+
     private FrameBufferInfo? GetFrameBufferInfo()
     {
         try
@@ -127,7 +180,7 @@ public class FrameBufferRenderTarget : IRenderTarget, IDisposable
         var rgbaMatch = Regex.Match(input, @"rgba\s+(\d+)/(\d+),(\d+)/(\d+),(\d+)/(\d+),(\d+)/(\d+)");
         if (rgbaMatch.Success)
         {
-            info.Rgba = new FrameBufferInfo.RgbaInfo
+            info.PixelFormat = new FrameBufferInfo.RgbaInfo
             {
                 RedLength = int.Parse(rgbaMatch.Groups[1].Value),
                 RedOffset = int.Parse(rgbaMatch.Groups[2].Value),

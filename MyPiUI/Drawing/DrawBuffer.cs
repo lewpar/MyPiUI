@@ -20,17 +20,17 @@ public class DrawBuffer
     
     private Rectangle? _clipRect;
 
-    public DrawBuffer(int width, int height, MyPixelFormat myPixelFormat, int bitsPerPixel = 32)
+    public DrawBuffer(MyGraphicsContext graphicsContext)
     {
-        _width = width;
-        _height = height;
+        _width = graphicsContext.Width;
+        _height = graphicsContext.Height;
         
-        _myPixelFormat = myPixelFormat;
+        _myPixelFormat = graphicsContext.PixelFormat;
         
-        _bitsPerPixel = bitsPerPixel;
+        _bitsPerPixel = graphicsContext.BitsPerPixel;
         _bytesPerPixel =  _bitsPerPixel / 8;
         
-        _backBuffer = new byte[width * height * _bytesPerPixel];
+        _backBuffer = new byte[_width * _height * _bytesPerPixel];
         
         _dirtyRegions = new List<Rectangle>();
         
@@ -55,19 +55,14 @@ public class DrawBuffer
                 return Color.To16Bit(r, g, b);
             
             case MyPixelFormat.R8G8B8A8:
-                return Color.ToRGBA(r, g, b);
+                return Color.ToRgba(r, g, b);
             
             case MyPixelFormat.B8G8R8A8:
-                return Color.ToBGRA(r, g, b);
+                return Color.ToBgra(r, g, b);
             
             default:
                 throw new Exception("Invalid pixel format.");
         }
-    }
-    
-    private bool IsWithinClip(int x, int y)
-    {
-        return _clipRect is null || _clipRect.Value.ContainsPoint(x, y);
     }
 
     /// <summary>
@@ -490,8 +485,8 @@ public class DrawBuffer
         if (fontSize < 8)
             fontSize = 8;
 
-        if (!FrameBufferFont.Basic8x8.TryGetValue(character, out var font))
-            font = FrameBufferFont.Basic8x8[' '];
+        if (!FrameBufferFont.Basic8X8.TryGetValue(character, out var font))
+            font = FrameBufferFont.Basic8X8[' '];
 
         float scale = fontSize / 8f;
         int intScale = Math.Max(1, (int)Math.Ceiling(scale));
@@ -599,12 +594,12 @@ public class DrawBuffer
                         {
                             case 16:
                                 ushort pixel = BitConverter.ToUInt16(srcPixels, srcIndex * 2);
-                                Color.FromRGB565(pixel, out r, out g, out b);
-                                a = alphaData?[srcIndex] ?? (byte)255;
+                                Color.FromRgb565(pixel, out r, out g, out b);
+                                a = alphaData?[srcIndex] ?? 255;
                                 break;
 
                             case 32:
-                                Color.FromBGRA(srcPixels, srcIndex * 4, out r, out g, out b, out a);
+                                Color.FromBgra(srcPixels, srcIndex * 4, out r, out g, out b, out a);
                                 break;
 
                             default:
