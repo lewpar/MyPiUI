@@ -1,4 +1,12 @@
 using MyPiUI.Primitives;
+using SixLabors.Fonts;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.Drawing.Processing;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using Color = MyPiUI.Primitives.Color;
+using Rectangle = MyPiUI.Primitives.Rectangle;
 
 namespace MyPiUI.Drawing;
 
@@ -15,6 +23,7 @@ public class DrawBuffer
     private byte[] _backBuffer;
 
     private List<Rectangle> _dirtyRegions;
+    private Dictionary<string, SixLabors.Fonts.Font> _fontCache;
     
     private Color _clearColor;
     
@@ -33,6 +42,7 @@ public class DrawBuffer
         _backBuffer = new byte[_width * _height * _bytesPerPixel];
         
         _dirtyRegions = new List<Rectangle>();
+        _fontCache = new Dictionary<string, SixLabors.Fonts.Font>();
         
         _clearColor = Color.Black;
     }
@@ -470,6 +480,56 @@ public class DrawBuffer
         }
 
         _dirtyRegions.Add(new Rectangle(x, y, width, height));
+    }
+    
+    public void BlitImageSharpToBuffer(Image<Rgba32> image, int destX, int destY)
+    {
+        var buffer = GetBuffer();
+        
+        for (int y = 0; y < image.Height; y++)
+        {
+            if (y + destY >= _height) break;
+
+            Span<Rgba32> pixelRow = image.DangerousGetPixelRowMemory(y).Span;
+            for (int x = 0; x < image.Width; x++)
+            {
+                if (x + destX >= _width) break;
+
+                var pixel = pixelRow[x];
+
+                int bufferIndex = ((y + destY) * _width + (x + destX)) * _bytesPerPixel;
+
+                if (pixel.A == 0) continue;
+
+                buffer[bufferIndex + 0] = pixel.R; // or B if your format is BGRA
+                buffer[bufferIndex + 1] = pixel.G;
+                buffer[bufferIndex + 2] = pixel.B;
+                buffer[bufferIndex + 3] = pixel.A;
+            }
+        }
+    }
+
+    public void DrawTextNew(int x, int y, string text, SixLabors.Fonts.Font font)
+    {
+        var textOptions = new RichTextOptions(font)
+        {
+            HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Top
+        };
+        
+        var textSize = TextMeasurer.MeasureSize(text, textOptions);
+        int imageWidth = (int)Math.Ceiling(textSize.Width + 1);
+        int imageHeight = (int)Math.Ceiling(font.Size);
+
+        // Create a blank image with transparent background
+        using var image = new Image<Rgba32>(imageWidth, imageHeight);
+        image.Mutate<Rgba32>(ctx =>
+        {
+            ctx.Fill(SixLabors.ImageSharp.Color.Transparent); // Optional: clear background
+            ctx.DrawText(textOptions, text, SixLabors.ImageSharp.Color.White); // Draw text in white
+        });
+
+        BlitImageSharpToBuffer(image, x, y);
     }
     
     /// <summary>

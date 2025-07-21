@@ -1,5 +1,7 @@
 using System.Xml.Serialization;
 using MyPiUI.Drawing;
+using SixLabors.Fonts;
+using SixLabors.ImageSharp.Drawing.Processing;
 
 namespace MyPiUI.UI.Controls;
 
@@ -13,7 +15,7 @@ public class TextAreaElement : UIElement
         set
         {
             _bindableText = value;
-            RecalculateBounds(value, FontSize);
+            RecalculateBounds();
         } 
     }
 
@@ -28,18 +30,49 @@ public class TextAreaElement : UIElement
             if (TryParseBindableInt(value, out var parsed))
             {
                 FontSize = parsed;
-                RecalculateBounds(Text, parsed);
+                RecalculateBounds();
             }
         }
+    }
+
+    private Font? _font;
+
+    public override void Init(MyGraphicsContext graphicsContext)
+    {
+        var fontFamilies = SystemFonts.Families;
+        var fontFamily = "Roboto Mono";
+        
+        FontFamily? targetFontFamily = fontFamilies.FirstOrDefault(f => f.Name == fontFamily);
+        if (targetFontFamily is null)
+        {
+            throw new Exception($"Font '{fontFamily}' not found");   
+        }
+
+        _font = targetFontFamily.Value.CreateFont(FontSize);
+        RecalculateBounds();
+        
+        base.Init(graphicsContext);
     }
 
     [XmlIgnore]
     public int FontSize { get; set; }
 
-    private void RecalculateBounds(string? text, int fontSize)
+    private void RecalculateBounds()
     {
-        Width = MeasureText(fontSize, text ?? "");
-        Height = FontSize;
+        if (_font is null || string.IsNullOrEmpty(Text))
+        {
+            return;
+        }
+        
+        var textOptions = new RichTextOptions(_font)
+        {
+            HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Top
+        };
+        
+        var textSize = TextMeasurer.MeasureSize(Text, textOptions);
+        Width = (int)Math.Ceiling(textSize.Width + 1);
+        Height = (int)Math.Ceiling(_font.Size);
     }
 
     public override void Draw(DrawBuffer buffer)
@@ -49,6 +82,8 @@ public class TextAreaElement : UIElement
             return;
         }
 
-        buffer.DrawText(X, Y, Text, Foreground, FontSize);
+        //buffer.DrawText(X, Y, Text, Foreground, FontSize);
+        if(_font is not null)
+            buffer.DrawTextNew(X, Y, Text, _font);
     }
 }

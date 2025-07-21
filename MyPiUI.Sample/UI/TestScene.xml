@@ -4,12 +4,12 @@
        xsi:schemaLocation="http://my.kuipi.com/ui ui.xsd">
     <StackPanel padding="1" background="#303030">
         <StackPanel orientation="0" content-alignment="1" padding="10" gap="10" background="#202020">
-            <TextArea text="Hello, World!" />
-            <TextArea text="Foo" />
-            <TextArea text="Bar" />
+            <TextArea text="Hello, World!" font-size="14" />
+            <TextArea text="Foo" font-size="14" />
+            <TextArea text="Bar" font-size="14" />
             <Rectangle width="200" height="2" background="#808080" />
             <ToggleButton is-toggled="{ToggleState}" width="50" />
-            <TextArea text="{ToggleStateString}" />
+            <TextArea text="{ToggleStateString}" font-size="14" />
             <Button handler="SwitchToSecondaryScene" text="Switch Scene" padding="8" />
         </StackPanel>
     </StackPanel>
