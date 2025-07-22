@@ -1,31 +1,13 @@
 using System.Xml.Serialization;
+
 using MyPiUI.Drawing;
 using MyPiUI.Input;
 using MyPiUI.Primitives;
 
 namespace MyPiUI.UI.Controls;
 
-public class ButtonElement : UIElement
+public class ButtonElement : TextUIElement
 {
-    [XmlAttribute("text")]
-    public string? Text { get; set; }
-
-    private string? _bindableFontSize;
-    [XmlAttribute("font-size")]
-    public string? BindableFontSize
-    {
-        get => _bindableFontSize;
-        set
-        {
-            _bindableFontSize = value;
-            if (TryParseBindableInt(value, out var parsed))
-                FontSize = parsed;
-        }
-    }
-
-    [XmlIgnore]
-    public int FontSize { get; set; }
-
     private string? _bindableBorderSize;
     [XmlAttribute("border-size")]
     public string? BindableBorderSize
@@ -154,13 +136,14 @@ public class ButtonElement : UIElement
             _image.Draw(buffer);
         }
 
-        if (!string.IsNullOrWhiteSpace(Text))
+        if (!string.IsNullOrWhiteSpace(Text) && 
+            !string.IsNullOrWhiteSpace(FontFamily))
         {
             var textWidth = MeasureText(FontSize, Text);
             var posX = X + (Width / 2) - (textWidth / 2);
             var posY = Y + (Height / 2) - (FontSize / 2);
 
-            buffer.DrawText(posX, posY, Text, Foreground, FontSize);
+            buffer.DrawText(posX, posY, Text, FontRenderer.GetOrCreateBitmapFont(FontFamily, FontSize));
         }
 
         buffer.ClearClipRect();

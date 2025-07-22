@@ -1,10 +1,8 @@
 using MyPiUI.Primitives;
-using SixLabors.Fonts;
-using SixLabors.ImageSharp;
+
 using SixLabors.ImageSharp.Advanced;
-using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
+
 using Color = MyPiUI.Primitives.Color;
 using Rectangle = MyPiUI.Primitives.Rectangle;
 
@@ -23,7 +21,6 @@ public class DrawBuffer
     private byte[] _backBuffer;
 
     private List<Rectangle> _dirtyRegions;
-    private Dictionary<string, SixLabors.Fonts.Font> _fontCache;
     
     private Color _clearColor;
     
@@ -42,7 +39,6 @@ public class DrawBuffer
         _backBuffer = new byte[_width * _height * _bytesPerPixel];
         
         _dirtyRegions = new List<Rectangle>();
-        _fontCache = new Dictionary<string, SixLabors.Fonts.Font>();
         
         _clearColor = Color.Black;
     }
@@ -482,144 +478,43 @@ public class DrawBuffer
         _dirtyRegions.Add(new Rectangle(x, y, width, height));
     }
     
-    public void BlitImageSharpToBuffer(Image<Rgba32> image, int destX, int destY)
+    public void DrawText(int x, int y, string text, BitmapFont font)
     {
-        var buffer = GetBuffer();
-        
-        for (int y = 0; y < image.Height; y++)
-        {
-            if (y + destY >= _height) break;
+        int cursorX = x;
+        int cursorY = y;
 
-            Span<Rgba32> pixelRow = image.DangerousGetPixelRowMemory(y).Span;
-            for (int x = 0; x < image.Width; x++)
+        foreach (char c in text)
+        {
+            if (!font.Glyphs.TryGetValue(c, out var glyph)) continue;
+
+            for (int gy = 0; gy < glyph.AtlasBounds.Height; gy++)
             {
-                if (x + destX >= _width) break;
+                int srcY = glyph.AtlasBounds.Y + gy;
+                int dstY = cursorY + gy - glyph.OffsetY;
+                if (dstY < 0 || dstY >= _height) continue;
 
-                var pixel = pixelRow[x];
+                Span<Rgba32> atlasRow = font.Atlas.DangerousGetPixelRowMemory(srcY).Span;
 
-                int bufferIndex = ((y + destY) * _width + (x + destX)) * _bytesPerPixel;
-
-                if (pixel.A == 0) continue;
-
-                buffer[bufferIndex + 0] = pixel.R; // or B if your format is BGRA
-                buffer[bufferIndex + 1] = pixel.G;
-                buffer[bufferIndex + 2] = pixel.B;
-                buffer[bufferIndex + 3] = pixel.A;
-            }
-        }
-    }
-
-    public void DrawTextNew(int x, int y, string text, SixLabors.Fonts.Font font)
-    {
-        var textOptions = new RichTextOptions(font)
-        {
-            HorizontalAlignment = HorizontalAlignment.Left,
-            VerticalAlignment = VerticalAlignment.Top
-        };
-        
-        var textSize = TextMeasurer.MeasureSize(text, textOptions);
-        int imageWidth = (int)Math.Ceiling(textSize.Width + 1);
-        int imageHeight = (int)Math.Ceiling(font.Size);
-
-        // Create a blank image with transparent background
-        using var image = new Image<Rgba32>(imageWidth, imageHeight);
-        image.Mutate<Rgba32>(ctx =>
-        {
-            ctx.Fill(SixLabors.ImageSharp.Color.Transparent); // Optional: clear background
-            ctx.DrawText(textOptions, text, SixLabors.ImageSharp.Color.White); // Draw text in white
-        });
-
-        BlitImageSharpToBuffer(image, x, y);
-    }
-    
-    /// <summary>
-    /// Renders a character onto the screen.
-    /// </summary>
-    /// <param name="x">The characters x coordinate on the screen.</param>
-    /// <param name="y">The characters y coordinate on the screen.</param>
-    /// <param name="character">The character to be rendered.</param>
-    /// <param name="color">The color of the character.</param>
-    /// <param name="fontSize">The font size of the character.</param>
-    public void DrawChar(int x, int y, char character, Color color, int fontSize = 8)
-    {
-        if (fontSize < 8)
-            fontSize = 8;
-
-        if (!FrameBufferFont.Basic8X8.TryGetValue(character, out var font))
-            font = FrameBufferFont.Basic8X8[' '];
-
-        float scale = fontSize / 8f;
-        int intScale = Math.Max(1, (int)Math.Ceiling(scale));
-        int width = _width;
-        int height = _height;
-        int pitch = width * _bytesPerPixel;
-        byte[] rawColor = GetRawColor(color);
-
-        unsafe
-        {
-            fixed (byte* bufferPtr = _backBuffer)
-            fixed (byte* colorPtr = rawColor)
-            {
-                for (int row = 0; row < 8; row++)
+                for (int gx = 0; gx < glyph.AtlasBounds.Width; gx++)
                 {
-                    byte bits = font[row];
+                    int srcX = glyph.AtlasBounds.X + gx;
+                    int dstX = cursorX + gx - glyph.OffsetX;
+                    if (dstX < 0 || dstX >= _width) continue;
 
-                    for (int col = 0; col < 8; col++)
-                    {
-                        if ((bits & (1 << (7 - col))) == 0)
-                            continue;
+                    Rgba32 pixel = atlasRow[srcX];
+                    if (pixel.A == 0) continue;
 
-                        int px = x + (int)(col * scale);
-                        int py = y + (int)(row * scale);
-
-                        for (int dy = 0; dy < intScale; dy++)
-                        {
-                            int dstY = py + dy;
-                            if (dstY < 0 || dstY >= height)
-                                continue;
-
-                            byte* dstRow = bufferPtr + dstY * pitch;
-
-                            for (int dx = 0; dx < intScale; dx++)
-                            {
-                                int dstX = px + dx;
-                                if (dstX < 0 || dstX >= width)
-                                    continue;
-
-                                byte* pixelPtr = dstRow + dstX * _bytesPerPixel;
-
-                                for (int b = 0; b < _bytesPerPixel; b++)
-                                    pixelPtr[b] = colorPtr[b];
-                            }
-                        }
-                    }
+                    int bufferIndex = (dstY * _width + dstX) * _bytesPerPixel;
+                    
+                    _backBuffer[bufferIndex + 0] = pixel.R;
+                    _backBuffer[bufferIndex + 1] = pixel.G;
+                    _backBuffer[bufferIndex + 2] = pixel.B;
+                    _backBuffer[bufferIndex + 3] = pixel.A;
                 }
             }
+
+            cursorX += glyph.AdvanceX;
         }
-    }
-
-    /// <summary>
-    /// Draws text onto the screen.
-    /// </summary>
-    /// <param name="x">The text x coordinate on the screen.</param>
-    /// <param name="y">The text y coordinate on the screen.</param>
-    /// <param name="text">The text to be rendered.</param>
-    /// <param name="color">The color of the text.</param>
-    /// <param name="fontSize">The font size of the text. Default: 8</param>
-    public void DrawText(int x, int y, string text, Color color, int fontSize = 8)
-    {
-        if (fontSize < 8)
-            fontSize = 8;
-
-        int cellWidth = fontSize;
-
-        for (int i = 0; i < text.Length; i++)
-        {
-            int charX = x + i * cellWidth;
-            DrawChar(charX, y, text[i], color, fontSize);
-        }
-
-        _dirtyRegions.Add(new Rectangle(x, y, text.Length * fontSize, fontSize));
     }
     
     public void DrawImage(int x, int y, BitmapImage image)
@@ -694,5 +589,4 @@ public class DrawBuffer
 
         _dirtyRegions.Add(new Rectangle(x, y, imgWidth, imgHeight));
     }
-
 }

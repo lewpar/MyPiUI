@@ -4,6 +4,8 @@ using System.Text;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+
+using MyPiUI.Drawing;
 using MyPiUI.Scene;
 using MyPiUI.UI.Attributes;
 using MyPiUI.UI.Controls;
@@ -185,6 +187,20 @@ public class MyUI
         }
     }
 
+    private static void InitializeFonts(UIElement element)
+    {
+        if (element is TextUIElement textElement &&
+            !string.IsNullOrWhiteSpace(textElement.FontFamily))
+        {
+            FontRenderer.CacheFontGlyphs(textElement.FontFamily, textElement.FontSize);   
+        }
+        
+        foreach (var child in element.Children)
+        {
+            InitializeFonts(child);
+        }
+    }
+
     public static async Task<string> LoadXmlFromPathAsync(string path)
     {
         if (!File.Exists(path))
@@ -219,6 +235,8 @@ public class MyUI
         {
             throw new Exception($"Failed to deserialize frame element from path '{path}'.");
         }
+
+        InitializeFonts(frame);
 
         foreach (var child in frame.Children)
         {
