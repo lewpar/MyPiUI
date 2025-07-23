@@ -1,8 +1,5 @@
 using MyPiUI.Primitives;
 
-using SixLabors.ImageSharp.Advanced;
-using SixLabors.ImageSharp.PixelFormats;
-
 using Color = MyPiUI.Primitives.Color;
 using Rectangle = MyPiUI.Primitives.Rectangle;
 
@@ -168,7 +165,8 @@ public class DrawBuffer
     /// <param name="r">The red color channel for the pixel.</param>
     /// <param name="g">The green color channel for the pixel.</param>
     /// <param name="b">The blue color channel for the pixel.</param>
-    public void DrawPixel(int x, int y, byte r, byte g, byte b)
+    /// <param name="a">The alpha channel for the pixel.</param>
+    public void DrawPixel(int x, int y, byte r, byte g, byte b, byte a = 255)
     {
         if (x < 0 || x >= _width || y < 0 || y >= _height)
             return;
@@ -176,18 +174,31 @@ public class DrawBuffer
         if (_clipRect is not null && !_clipRect.Value.ContainsPoint(x, y))
             return;
 
-        var rawColor = GetRawColor(r, g, b);
         int pixelOffset = (y * _width + x) * _bytesPerPixel;
 
         unsafe
         {
             fixed (byte* bufferPtr = _backBuffer)
-            fixed (byte* colorPtr = rawColor)
             {
                 byte* dst = bufferPtr + pixelOffset;
-                for (int i = 0; i < _bytesPerPixel; i++)
+
+                // Alpha blend with background
+                if (a < 255)
                 {
-                    dst[i] = colorPtr[i];
+                    byte dstR = dst[0];
+                    byte dstG = dst[1];
+                    byte dstB = dst[2];
+
+                    float alpha = a / 255f;
+                    dst[0] = (byte)(r * alpha + dstR * (1 - alpha));
+                    dst[1] = (byte)(g * alpha + dstG * (1 - alpha));
+                    dst[2] = (byte)(b * alpha + dstB * (1 - alpha));
+                }
+                else
+                {
+                    dst[0] = r;
+                    dst[1] = g;
+                    dst[2] = b;
                 }
             }
         }
@@ -478,43 +489,9 @@ public class DrawBuffer
         _dirtyRegions.Add(new Rectangle(x, y, width, height));
     }
     
-    public void DrawText(int x, int y, string text, BitmapFont font)
+    public void DrawText(int x, int y, string text, int fontSize, Color color)
     {
-        int cursorX = x;
-        int cursorY = y;
-
-        foreach (char c in text)
-        {
-            if (!font.Glyphs.TryGetValue(c, out var glyph)) continue;
-
-            for (int gy = 0; gy < glyph.AtlasBounds.Height; gy++)
-            {
-                int srcY = glyph.AtlasBounds.Y + gy;
-                int dstY = cursorY + gy - glyph.OffsetY;
-                if (dstY < 0 || dstY >= _height) continue;
-
-                Span<Rgba32> atlasRow = font.Atlas.DangerousGetPixelRowMemory(srcY).Span;
-
-                for (int gx = 0; gx < glyph.AtlasBounds.Width; gx++)
-                {
-                    int srcX = glyph.AtlasBounds.X + gx;
-                    int dstX = cursorX + gx - glyph.OffsetX;
-                    if (dstX < 0 || dstX >= _width) continue;
-
-                    Rgba32 pixel = atlasRow[srcX];
-                    if (pixel.A == 0) continue;
-
-                    int bufferIndex = (dstY * _width + dstX) * _bytesPerPixel;
-                    
-                    _backBuffer[bufferIndex + 0] = pixel.R;
-                    _backBuffer[bufferIndex + 1] = pixel.G;
-                    _backBuffer[bufferIndex + 2] = pixel.B;
-                    _backBuffer[bufferIndex + 3] = pixel.A;
-                }
-            }
-
-            cursorX += glyph.AdvanceX;
-        }
+        FontRenderer.DrawText(this, x, y, text, fontSize);
     }
     
     public void DrawImage(int x, int y, BitmapImage image)

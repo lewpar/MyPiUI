@@ -1,142 +1,145 @@
-using SixLabors.Fonts;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Drawing.Processing;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
+using System.Runtime.InteropServices;
+using static StbTrueTypeSharp.StbTrueType;
 
 namespace MyPiUI.Drawing;
 
-public class FontGlyph
+public static unsafe class FontRenderer
 {
-    public Rectangle AtlasBounds;
-    public int OffsetX;
-    public int OffsetY;
-    public int AdvanceX;
-}
+    private static readonly Dictionary<int, stbtt_fontinfo> Fonts = new();
+    private static readonly Dictionary<int, byte[]> FontData = new();
+    private static readonly Dictionary<int, GCHandle> FontDataHandles = new();
+    private static readonly Dictionary<int, float> FontScales = new();
+    private static readonly Dictionary<int, int> FontAscents = new();
 
-public class BitmapFont
-{
-    public required Image<Rgba32> Atlas;
-    public required Dictionary<char, FontGlyph> Glyphs;
-    public int LineHeight;
-    public required Font Font;
-}
+    private const string FontPath = "Fonts/RobotoMono-Regular.ttf";
 
-public class FontRenderer
-{
-    private static readonly Dictionary<string, BitmapFont> FontCache = new();
-    
-    public static Font LoadFont(string fontFamily, int fontSize = 14)
+    public static void InitializeFont(int fontSize)
     {
-        var fontFamilies = SystemFonts.Families;
+        if (Fonts.ContainsKey(fontSize)) return; // Already loaded
+
+        var data = File.ReadAllBytes(FontPath);
+        var handle = GCHandle.Alloc(data, GCHandleType.Pinned);
+        FontDataHandles[fontSize] = handle;
+
+        byte* ptr = (byte*)handle.AddrOfPinnedObject();
+
+        var font = new stbtt_fontinfo();
+        if (stbtt_InitFont(font, ptr, 0) == 0)
+            throw new Exception($"Failed to load font: {FontPath}");
+
+        Fonts[fontSize] = font;
+        FontData[fontSize] = data;
+
+        var scale = stbtt_ScaleForPixelHeight(font, fontSize);
+        FontScales[fontSize] = scale;
+
+        int ascent, descent, lineGap;
+        stbtt_GetFontVMetrics(font, &ascent, &descent, &lineGap);
+        FontAscents[fontSize] = (int)(ascent * scale);
+    }
+
+    public static void DrawText(DrawBuffer buffer, int x, int y, string text, int fontSize)
+    {
+        if (fontSize <= 0)
+        {
+            return;
+        }
         
-        var targetFontFamily = fontFamilies.FirstOrDefault(f => f.Name == fontFamily);
-        if (targetFontFamily == default(FontFamily))
+        if (!Fonts.ContainsKey(fontSize)) InitializeFont(fontSize);
+
+        var font = Fonts[fontSize];
+        var scale = FontScales[fontSize];
+        var ascent = FontAscents[fontSize];
+        var data = FontData[fontSize];
+
+        int posX = x;
+        int posY = y;
+
+        fixed (byte* dataPtr = data)
         {
-            throw new Exception($"Font '{fontFamily}' not found.");
-        }
-
-        var font = targetFontFamily.CreateFont(fontSize);
-        return font;
-    }
-    
-    public static BitmapFont GetOrCreateBitmapFont(string fontFamily, int fontSize)
-    {
-        string key = $"{fontFamily}:{fontSize}";
-        if (FontCache.TryGetValue(key, out var cached))
-            return cached;
-
-        var bitmapFont = CacheFontGlyphs(fontFamily, fontSize);
-        FontCache[key] = bitmapFont;
-        
-        return bitmapFont;
-    }
-
-    public static BitmapFont CacheFontGlyphs(string fontFamily, int fontSize)
-    {
-        Font font = LoadFont(fontFamily, fontSize);
-        RichTextOptions options = new(font)
-        {
-            Dpi = 72,
-            Origin = PointF.Empty,
-            HorizontalAlignment = HorizontalAlignment.Left,
-            VerticalAlignment = VerticalAlignment.Top
-        };
-
-        var charset = Enumerable.Range(32, 95).Select(i => (char)i); // Printable ASCII
-
-        var glyphs = new Dictionary<char, FontGlyph>();
-        var glyphImages = new List<(char c, Image<Rgba32> image, FontGlyph info)>();
-
-        int padding = 1;
-        int maxHeight = 0;
-
-        foreach (char c in charset)
-        {
-            var size = TextMeasurer.MeasureBounds(c.ToString(), options);
-            int width = (int)Math.Ceiling(size.Width + padding);
-            int height = (int)Math.Ceiling(size.Height + padding);
-            maxHeight = Math.Max(maxHeight, height);
-
-            var img = new Image<Rgba32>(width, height);
-            img.Mutate(ctx =>
+            foreach (char c in text)
             {
-                ctx.DrawText(options, c.ToString(), Color.White);
-            });
+                int glyphIndex = stbtt_FindGlyphIndex(font, c);
+                if (glyphIndex == 0) continue;
 
-            var info = new FontGlyph
-            {
-                OffsetX = padding,
-                OffsetY = padding,
-                AdvanceX = (int)Math.Ceiling(size.Width)
-            };
+                int advance, lsb;
+                stbtt_GetGlyphHMetrics(font, glyphIndex, &advance, &lsb);
 
-            glyphImages.Add((c, img, info));
-        }
+                int x0, y0, x1, y1;
+                stbtt_GetGlyphBitmapBox(font, glyphIndex, scale, scale, &x0, &y0, &x1, &y1);
 
-        // Pack into single row
-        int atlasWidth = glyphImages.Sum(g => g.image.Width);
-        var atlas = new Image<Rgba32>(atlasWidth, maxHeight);
-        int currentX = 0;
+                int width = x1 - x0;
+                int height = y1 - y0;
+                
+                if (width <= 0 || height <= 0) continue;
+                byte[] pixels = new byte[width * height];
 
-        foreach (var (c, image, info) in glyphImages)
-        {
-            var x = currentX;
-            atlas.Mutate(ctx => ctx.DrawImage(image, new Point(x, 0), 1f));
-            info.AtlasBounds = new Rectangle(currentX, 0, image.Width, image.Height);
-            glyphs[c] = info;
-            currentX += image.Width;
-            image.Dispose();
-        }
-
-        return new BitmapFont
-        {
-            Atlas = atlas,
-            Glyphs = glyphs,
-            Font = font,
-            LineHeight = maxHeight,
-        };
-    }
-
-    public static (int, int) MeasureText(string text, string fontFamily, int fontSize)
-    {
-        var bitmapFont = GetOrCreateBitmapFont(fontFamily, fontSize);
-
-        int width = 0;
-        int height = 0;
-
-        foreach (char c in text)
-        {
-            if (bitmapFont.Glyphs.TryGetValue(c, out FontGlyph? info))
-            {
-                width += info.AtlasBounds.Width;
-                if (height < info.AtlasBounds.Height)
+                fixed (byte* pixelsPtr = pixels)
                 {
-                    height = info.AtlasBounds.Height;
+                    stbtt_MakeGlyphBitmapSubpixel(font, pixelsPtr, width, height, width, scale, scale, 0, 0, glyphIndex);
                 }
+
+                for (int row = 0; row < height; row++)
+                {
+                    for (int col = 0; col < width; col++)
+                    {
+                        byte alpha = pixels[row * width + col];
+                        if (alpha == 0) continue;
+
+                        int drawX = posX + x0 + col;
+                        int drawY = posY + ascent + y0 + row;
+
+                        buffer.DrawPixel(drawX, drawY, 255, 255, 255, alpha);
+                    }
+                }
+
+                posX += (int)(advance * scale + 0.5f);
             }
         }
+    }
+
+    public static (int width, int height) MeasureText(string text, int fontSize)
+    {
+        if (fontSize <= 0)
+        {
+            return (0, 0);
+        }
+        
+        if (!Fonts.ContainsKey(fontSize)) InitializeFont(fontSize);
+
+        var font = Fonts[fontSize];
+        var scale = FontScales[fontSize];
+
+        int ascent, descent, lineGap;
+        stbtt_GetFontVMetrics(font, &ascent, &descent, &lineGap);
+
+        int width = 0;
+        foreach (char c in text)
+        {
+            int glyphIndex = stbtt_FindGlyphIndex(font, c);
+            if (glyphIndex == 0) continue;
+
+            int advance, lsb;
+            stbtt_GetGlyphHMetrics(font, glyphIndex, &advance, &lsb);
+
+            width += (int)(advance * scale + 0.5f);
+        }
+
+        int height = (int)((ascent - descent + lineGap) * scale);
 
         return (width, height);
+    }
+
+    public static void Cleanup()
+    {
+        foreach (var handle in FontDataHandles.Values)
+        {
+            if (handle.IsAllocated) handle.Free();
+        }
+        FontDataHandles.Clear();
+        Fonts.Clear();
+        FontData.Clear();
+        FontScales.Clear();
+        FontAscents.Clear();
     }
 }

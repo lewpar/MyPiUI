@@ -38,7 +38,7 @@ public class SceneManager
             return;
         }
 
-        CurrentScene.UIFrame = MyUI.LoadUIElementsAsync(CurrentScene).GetAwaiter().GetResult();
+        CurrentScene.UIFrame = MyUI.LoadUIElements(CurrentScene);
         CurrentScene.UIFrame.Init(MyEngine.Instance.GraphicsContext);
     }
 
@@ -48,7 +48,7 @@ public class SceneManager
         
         if (!string.IsNullOrWhiteSpace(scene.UI))
         {
-            var uiFrame = MyUI.LoadUIElementsAsync(scene).GetAwaiter().GetResult();
+            var uiFrame = MyUI.LoadUIElements(scene);
             scene.UIFrame = uiFrame;
             
             uiFrame.Init(MyEngine.Instance.GraphicsContext);

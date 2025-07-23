@@ -4,10 +4,19 @@ using MyPiUI.Drawing;
 
 namespace MyPiUI.UI.Controls;
 
-public class TextUIElement : UIElement
+public abstract class TextUIElement : UIElement
 {
+    private string? _text;
     [XmlAttribute("text")]
-    public string? Text { get; set; }
+    public string? Text
+    {
+        get => _text;
+        set
+        {
+            _text = value;
+            CalculateBounds();
+        }
+    }
     
     [XmlAttribute("font-family")]
     public string? FontFamily { get; set; }
@@ -27,4 +36,23 @@ public class TextUIElement : UIElement
 
     [XmlIgnore]
     public int FontSize { get; set; }
+
+    public override void Init(MyGraphicsContext graphicsContext)
+    {
+        CalculateBounds();
+        base.Init(graphicsContext);
+    }
+
+    public void CalculateBounds()
+    {
+        if (string.IsNullOrWhiteSpace(Text))
+        {
+            return;
+        }
+
+        var (width, height) = FontRenderer.MeasureText(Text, FontSize);
+        
+        Width = width;
+        Height = height;
+    }
 }

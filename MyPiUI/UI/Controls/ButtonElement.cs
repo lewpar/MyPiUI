@@ -136,14 +136,13 @@ public class ButtonElement : TextUIElement
             _image.Draw(buffer);
         }
 
-        if (!string.IsNullOrWhiteSpace(Text) && 
-            !string.IsNullOrWhiteSpace(FontFamily))
+        if (!string.IsNullOrWhiteSpace(Text))
         {
             var textWidth = MeasureText(FontSize, Text);
             var posX = X + (Width / 2) - (textWidth / 2);
             var posY = Y + (Height / 2) - (FontSize / 2);
 
-            buffer.DrawText(posX, posY, Text, FontRenderer.GetOrCreateBitmapFont(FontFamily, FontSize));
+            buffer.DrawText(posX, posY, Text, FontSize, Foreground);
         }
 
         buffer.ClearClipRect();

@@ -41,9 +41,6 @@ public class MyEngine : IDisposable
 
     private bool _isCalibratingTouch;
 
-    private BitmapFont _calibrateFont;
-    private BitmapFont _debugFont;
-
     public MyEngine(MyEngineOptions myOptions)
     {
         _myOptions = myOptions;
@@ -51,8 +48,6 @@ public class MyEngine : IDisposable
         _inputManager = new InputManager(myOptions);
         _deltaTimer = new Stopwatch();
         _touchCursorPosition = new Vector2(0, 0);
-        _calibrateFont = FontRenderer.GetOrCreateBitmapFont("Roboto Mono", 24);
-        _debugFont = FontRenderer.GetOrCreateBitmapFont("Roboto Mono", 12);
 
         if (Instance is null)
         {
@@ -190,7 +185,7 @@ public class MyEngine : IDisposable
             var mainX = (_myOptions.RenderWidth / 2) - (mainSize.X / 2);
             var mainY = (_myOptions.RenderHeight / 2) - (mainSize.Y / 2);
 
-            _drawBuffer.DrawText(mainX, mainY, mainText, _calibrateFont);
+            _drawBuffer.DrawText(mainX, mainY, mainText, fontSize, Color.White);
 
             // Draw hold progress text (if touching)
             if (isTouching)
@@ -200,7 +195,7 @@ public class MyEngine : IDisposable
                 var holdX = (_myOptions.RenderWidth / 2) - (holdSize.X / 2);
                 var holdY = mainY + mainSize.Y + 10; // 10 pixels below main text
 
-                _drawBuffer.DrawText(holdX, holdY, holdText, _calibrateFont);
+                _drawBuffer.DrawText(holdX, holdY, holdText, fontSize, Color.White);
             }
             
             _renderTarget.SwapBuffer(_drawBuffer.GetBuffer());
@@ -235,17 +230,18 @@ public class MyEngine : IDisposable
         int x = 15, y = 15, lineHeight = 12;
         int totalHeight = lineHeight * 8 + lineHeight;
         int totalWidth = 8 * 20;
+        int fontSize = 12;
         var color = _myOptions.ForegroundColor;
 
         _drawBuffer.FillRect(0, 0, totalWidth, totalHeight, _myOptions.BackgroundColor);
-        _drawBuffer.DrawText(x, y, $"Frame Δ: {_deltaTimeMs} ms", _debugFont); y += lineHeight;
-        _drawBuffer.DrawText(x, y, $"Clear: {_drawMetrics.ClearTime:F2} ms", _debugFont); y += lineHeight;
-        _drawBuffer.DrawText(x, y, $"Scene: {_drawMetrics.SceneDrawTime:F2} ms", _debugFont); y += lineHeight;
-        _drawBuffer.DrawText(x, y, $"UI: {_drawMetrics.UIDrawTime:F2} ms", _debugFont); y += lineHeight;
-        _drawBuffer.DrawText(x, y, $"Debug UI: {_drawMetrics.DebugUIDrawTime:F2} ms", _debugFont); y += lineHeight;
-        _drawBuffer.DrawText(x, y, $"Metrics: {_drawMetrics.MetricsTime:F2} ms", _debugFont); y += lineHeight;
-        _drawBuffer.DrawText(x, y, $"Swap: {_drawMetrics.SwapTime:F2} ms", _debugFont); y += lineHeight;
-        _drawBuffer.DrawText(x, y, $"Total: {_drawMetrics.TotalDrawTime:F2} ms", _debugFont);
+        _drawBuffer.DrawText(x, y, $"Frame Δ: {_deltaTimeMs} ms", fontSize, color); y += lineHeight;
+        _drawBuffer.DrawText(x, y, $"Clear: {_drawMetrics.ClearTime:F2} ms", fontSize, color); y += lineHeight;
+        _drawBuffer.DrawText(x, y, $"Scene: {_drawMetrics.SceneDrawTime:F2} ms", fontSize, color); y += lineHeight;
+        _drawBuffer.DrawText(x, y, $"UI: {_drawMetrics.UIDrawTime:F2} ms", fontSize, color); y += lineHeight;
+        _drawBuffer.DrawText(x, y, $"Debug UI: {_drawMetrics.DebugUIDrawTime:F2} ms", fontSize, color); y += lineHeight;
+        _drawBuffer.DrawText(x, y, $"Metrics: {_drawMetrics.MetricsTime:F2} ms", fontSize, color); y += lineHeight;
+        _drawBuffer.DrawText(x, y, $"Swap: {_drawMetrics.SwapTime:F2} ms", fontSize, color); y += lineHeight;
+        _drawBuffer.DrawText(x, y, $"Total: {_drawMetrics.TotalDrawTime:F2} ms", fontSize, color);
     }
 
     private void UpdateTouchPosition()
@@ -266,9 +262,9 @@ public class MyEngine : IDisposable
 
     private void RenderDebugUI(UIElement element)
     {
-        var fontSize = 8;
+        var fontSize = 12;
         _drawBuffer.DrawRect(element.X, element.Y, element.Width, element.Height, 1, Color.Red);
-        _drawBuffer.DrawText(element.X, element.Y - fontSize - 1, element.GetType().Name, _debugFont);
+        _drawBuffer.DrawText(element.X, element.Y - fontSize - 1, element.GetType().Name, fontSize, Color.White);
         
         foreach (var child in element.Children)
         {
