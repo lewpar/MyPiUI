@@ -1,6 +1,6 @@
 namespace MyPiUI.Primitives;
 
-public struct Color
+public readonly record struct Color
 {
     public byte R { get; init; }
     public byte G { get; init; }

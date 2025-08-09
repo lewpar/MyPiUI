@@ -1,7 +1,9 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Xml.Serialization;
+
 using MyPiUI.Drawing;
+using MyPiUI.Drawing.Buffers;
 using MyPiUI.Primitives;
 
 namespace MyPiUI.UI.Controls;
@@ -127,7 +129,7 @@ public abstract class UIElement : INotifyPropertyChanged
         }
     }
 
-    public virtual void Draw(DrawBuffer buffer)
+    public virtual void Draw(IDrawBuffer buffer)
     {
         foreach (var child in Children)
         {

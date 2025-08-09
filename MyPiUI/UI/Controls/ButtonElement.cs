@@ -1,6 +1,7 @@
 using System.Xml.Serialization;
 
 using MyPiUI.Drawing;
+using MyPiUI.Drawing.Buffers;
 using MyPiUI.Input;
 using MyPiUI.Primitives;
 
@@ -107,20 +108,20 @@ public class ButtonElement : TextUIElement
         base.Update(deltaTimeMs);
     }
 
-    public override void Draw(DrawBuffer buffer)
+    public override void Draw(IDrawBuffer buffer)
     {
-        buffer.SetClipRect(new Rectangle(X, Y, Width, Height));
+        //buffer.SetClipRect(new Rectangle(X, Y, Width, Height));
 
         if (Background is not null &&
             !_currentTouchState)
         {
-            buffer.FillRect(X, Y, Width, Height, Background.Value, 5);   
+            buffer.FillRect(new Rectangle(X, Y, Width, Height), Background.Value);   
         }
         
         if (BackgroundHover is not null &&
             _currentTouchState)
         {
-            buffer.FillRect(X, Y, Width, Height, BackgroundHover.Value, 5);   
+            buffer.FillRect(new Rectangle(X, Y, Width, Height), BackgroundHover.Value);   
         }
 
         if (_image is not null)
@@ -136,15 +137,16 @@ public class ButtonElement : TextUIElement
             _image.Draw(buffer);
         }
 
-        if (!string.IsNullOrWhiteSpace(Text))
+        if (!string.IsNullOrWhiteSpace(Text) &&
+            !string.IsNullOrWhiteSpace(FontFamily))
         {
             var textWidth = MeasureText(FontSize, Text);
             var posX = X + (Width / 2) - (textWidth / 2);
             var posY = Y + (Height / 2) - (FontSize / 2);
 
-            buffer.DrawText(posX, posY, Text, FontSize, Foreground);
+            buffer.DrawText(new Point(posX, posY), Text, FontFamily, FontSize, Foreground);
         }
 
-        buffer.ClearClipRect();
+        //buffer.ClearClipRect();
     }
 }

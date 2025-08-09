@@ -1,5 +1,6 @@
 using System.Xml.Serialization;
 using MyPiUI.Drawing;
+using MyPiUI.Drawing.Buffers;
 using MyPiUI.Input;
 using MyPiUI.Primitives;
 
@@ -68,17 +69,17 @@ public class ToggleButtonElement : UIElement
         _prevTouchState = _currentTouchState;
     }
 
-    public override void Draw(DrawBuffer buffer)
+    public override void Draw(IDrawBuffer buffer)
     {
-        buffer.FillRect(X, Y, Width, Height, Background ?? _fallbackFillColor, 5);
+        buffer.FillRect(new Rectangle(X, Y, Width, Height), Background ?? _fallbackFillColor);
 
         if (!IsToggled)
         {
-            buffer.FillRect(X + Padding, Y + Padding, Width / 2, Height - (Padding * 2), Background ?? _fallbackToggleInactiveColor, 5);   
+            buffer.FillRect(new Rectangle(X + Padding, Y + Padding, Width / 2, Height - (Padding * 2)), Background ?? _fallbackToggleInactiveColor);   
         }
         else
         {
-            buffer.FillRect(X + (Width / 2), Y + Padding, Width / 2, Height - (Padding * 2), Background ?? _fallbackToggleActiveColor, 5);
+            buffer.FillRect(new Rectangle(X + (Width / 2), Y + Padding, Width / 2, Height - (Padding * 2)), Background ?? _fallbackToggleActiveColor);
         }
     }
 }

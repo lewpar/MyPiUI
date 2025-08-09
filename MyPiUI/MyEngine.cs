@@ -2,6 +2,7 @@ using System.Diagnostics;
 
 using MyPiUI.Configuration;
 using MyPiUI.Drawing;
+using MyPiUI.Drawing.Buffers;
 using MyPiUI.Drawing.RenderTargets;
 using MyPiUI.Input;
 using MyPiUI.Primitives;
@@ -30,7 +31,7 @@ public class MyEngine : IDisposable
     }
     
     private IRenderTarget _renderTarget;
-    private DrawBuffer _drawBuffer;
+    private IDrawBuffer _drawBuffer;
 
     private long _deltaTimeMs;
     private Stopwatch _deltaTimer;
@@ -69,7 +70,7 @@ public class MyEngine : IDisposable
         }
 
         GraphicsContext = _renderTarget.CreateGraphicsContext();
-        _drawBuffer = new DrawBuffer(GraphicsContext);
+        _drawBuffer = new SkiaDrawBuffer(GraphicsContext);
         _drawBuffer.SetClearColor(myOptions.BackgroundColor);
         _drawBuffer.Clear();
     }
@@ -178,24 +179,26 @@ public class MyEngine : IDisposable
             }
 
             // Draw main calibration instruction text
-            var fontSize = 25;
+            var fontSize = 25f;
+            var fontFamily = "Roboto";
+            
             var phase = topLeftComplete ? "Bottom Right" : "Top Left";
             var mainText = $"Touch {phase} - {x:F0}, {y:F0}";
-            var mainSize = MeasureText(mainText, fontSize);
-            var mainX = (_myOptions.RenderWidth / 2) - (mainSize.X / 2);
-            var mainY = (_myOptions.RenderHeight / 2) - (mainSize.Y / 2);
+            var mainSize = _drawBuffer.MeasureText(mainText, fontFamily, fontSize);
+            var mainX = (_myOptions.RenderWidth / 2) - (mainSize.Width / 2);
+            var mainY = (_myOptions.RenderHeight / 2) - (mainSize.Height / 2);
 
-            _drawBuffer.DrawText(mainX, mainY, mainText, fontSize, Color.White);
+            _drawBuffer.DrawText(new Point(mainX, mainY), mainText, fontFamily, fontSize, Color.White);
 
             // Draw hold progress text (if touching)
             if (isTouching)
             {
                 var holdText = $"Hold: {Math.Min(heldDuration, targetHoldTimeMs):F0} / {targetHoldTimeMs} ms";
-                var holdSize = MeasureText(holdText, fontSize);
-                var holdX = (_myOptions.RenderWidth / 2) - (holdSize.X / 2);
-                var holdY = mainY + mainSize.Y + 10; // 10 pixels below main text
+                var holdSize = _drawBuffer.MeasureText(holdText, fontFamily, fontSize);
+                var holdX = (_myOptions.RenderWidth / 2) - (holdSize.Width / 2);
+                var holdY = mainY + mainSize.Height + 10; // 10 pixels below main text
 
-                _drawBuffer.DrawText(holdX, holdY, holdText, fontSize, Color.White);
+                _drawBuffer.DrawText(new Point(holdX, holdY), holdText, "Roboto", fontSize, Color.White);
             }
             
             _renderTarget.SwapBuffer(_drawBuffer.GetBuffer());
@@ -212,10 +215,10 @@ public class MyEngine : IDisposable
             throw new Exception("Failed to save touch calibration, runtime config is not loaded.");
         }
 
-        config.MinTouchX = Math.Min(topLeft.X, bottomRight.X);
-        config.MinTouchY = Math.Min(topLeft.Y, bottomRight.Y);
-        config.MaxTouchX = Math.Max(topLeft.X, bottomRight.X);
-        config.MaxTouchY = Math.Max(topLeft.Y, bottomRight.Y);
+        config.MinTouchX = Math.Min(topLeft.Value.X, bottomRight.Value.X);
+        config.MinTouchY = Math.Min(topLeft.Value.Y, bottomRight.Value.Y);
+        config.MaxTouchX = Math.Max(topLeft.Value.X, bottomRight.Value.X);
+        config.MaxTouchY = Math.Max(topLeft.Value.Y, bottomRight.Value.Y);
         
         config.Save();
     }
@@ -230,18 +233,19 @@ public class MyEngine : IDisposable
         int x = 15, y = 15, lineHeight = 12;
         int totalHeight = lineHeight * 8 + lineHeight;
         int totalWidth = 8 * 20;
+        string fontFamily = "Roboto";
         int fontSize = 12;
         var color = _myOptions.ForegroundColor;
 
-        _drawBuffer.FillRect(0, 0, totalWidth, totalHeight, _myOptions.BackgroundColor);
-        _drawBuffer.DrawText(x, y, $"Frame Δ: {_deltaTimeMs} ms", fontSize, color); y += lineHeight;
-        _drawBuffer.DrawText(x, y, $"Clear: {_drawMetrics.ClearTime:F2} ms", fontSize, color); y += lineHeight;
-        _drawBuffer.DrawText(x, y, $"Scene: {_drawMetrics.SceneDrawTime:F2} ms", fontSize, color); y += lineHeight;
-        _drawBuffer.DrawText(x, y, $"UI: {_drawMetrics.UIDrawTime:F2} ms", fontSize, color); y += lineHeight;
-        _drawBuffer.DrawText(x, y, $"Debug UI: {_drawMetrics.DebugUIDrawTime:F2} ms", fontSize, color); y += lineHeight;
-        _drawBuffer.DrawText(x, y, $"Metrics: {_drawMetrics.MetricsTime:F2} ms", fontSize, color); y += lineHeight;
-        _drawBuffer.DrawText(x, y, $"Swap: {_drawMetrics.SwapTime:F2} ms", fontSize, color); y += lineHeight;
-        _drawBuffer.DrawText(x, y, $"Total: {_drawMetrics.TotalDrawTime:F2} ms", fontSize, color);
+        _drawBuffer.FillRect(new Rectangle(0, 0, totalWidth, totalHeight), _myOptions.BackgroundColor);
+        _drawBuffer.DrawText(new Point(x, y), $"Frame Δ: {_deltaTimeMs} ms", fontFamily, fontSize, color); y += lineHeight;
+        _drawBuffer.DrawText(new Point(x, y), $"Clear: {_drawMetrics.ClearTime:F2} ms", fontFamily, fontSize, color); y += lineHeight;
+        _drawBuffer.DrawText(new Point(x, y), $"Scene: {_drawMetrics.SceneDrawTime:F2} ms", fontFamily, fontSize, color); y += lineHeight;
+        _drawBuffer.DrawText(new Point(x, y), $"UI: {_drawMetrics.UIDrawTime:F2} ms", fontFamily, fontSize, color); y += lineHeight;
+        _drawBuffer.DrawText(new Point(x, y), $"Debug UI: {_drawMetrics.DebugUIDrawTime:F2} ms", fontFamily, fontSize, color); y += lineHeight;
+        _drawBuffer.DrawText(new Point(x, y), $"Metrics: {_drawMetrics.MetricsTime:F2} ms", fontFamily, fontSize, color); y += lineHeight;
+        _drawBuffer.DrawText(new Point(x, y), $"Swap: {_drawMetrics.SwapTime:F2} ms", fontFamily, fontSize, color); y += lineHeight;
+        _drawBuffer.DrawText(new Point(x, y), $"Total: {_drawMetrics.TotalDrawTime:F2} ms", fontFamily, fontSize, color);
     }
 
     private void UpdateTouchPosition()
@@ -257,14 +261,13 @@ public class MyEngine : IDisposable
         var x = _touchCursorPosition.X * _myOptions.RenderWidth;
         var y = _touchCursorPosition.Y * _myOptions.RenderHeight;
 
-        _drawBuffer.FillRect((int)x, (int)y, 10, 10, isTouching ? Color.Red : Color.Gray);
+        _drawBuffer.FillRect(new Rectangle((int)x, (int)y, 10, 10), isTouching ? Color.Red : Color.Gray);
     }
 
     private void RenderDebugUI(UIElement element)
     {
-        var fontSize = 12;
-        _drawBuffer.DrawRect(element.X, element.Y, element.Width, element.Height, 1, Color.Red);
-        _drawBuffer.DrawText(element.X, element.Y - fontSize - 1, element.GetType().Name, fontSize, Color.White);
+        _drawBuffer.DrawRect(new Rectangle(element.X, element.Y, element.Width, element.Y), Color.Red);
+        _drawBuffer.DrawText(new Point(element.X, element.Y), element.GetType().Name, "Roboto", 12f, Color.White);
         
         foreach (var child in element.Children)
         {

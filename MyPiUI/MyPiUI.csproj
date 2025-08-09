@@ -26,6 +26,8 @@
     <PackageReference Include="JetBrains.Annotations" Version="2025.1.0-eap1" />
     <PackageReference Include="Raylib-cs" Version="7.0.1" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
+    <PackageReference Include="SkiaSharp" Version="3.119.0" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.119.0" />
     <PackageReference Include="StbTrueTypeSharp" Version="1.26.12" />
   </ItemGroup>
 

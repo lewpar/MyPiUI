@@ -2,6 +2,6 @@ namespace MyPiUI.Drawing.RenderTargets;
 
 public interface IRenderTarget
 {
-    void SwapBuffer(byte[] buffer);
+    void SwapBuffer(ReadOnlySpan<byte> buffer);
     public MyGraphicsContext CreateGraphicsContext();
 }

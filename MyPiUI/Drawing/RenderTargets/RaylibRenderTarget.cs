@@ -51,7 +51,7 @@ public class RaylibRenderTarget : IRenderTarget, IDisposable
         }
     }
     
-    public void SwapBuffer(byte[] buffer)
+    public void SwapBuffer(ReadOnlySpan<byte> buffer)
     {
         if (buffer.Length != _expectedBufferSize)
         {
@@ -63,13 +63,7 @@ public class RaylibRenderTarget : IRenderTarget, IDisposable
             Raylib.CloseWindow();
         }
 
-        unsafe
-        {
-            fixed (byte* bufferPtr = buffer)
-            {
-                Raylib.UpdateTexture(_texture, bufferPtr);
-            }
-        }
+        Raylib.UpdateTexture(_texture, buffer);
 
         Raylib.BeginDrawing();
         Raylib.ClearBackground(_backgroundColor ?? Color.Black);

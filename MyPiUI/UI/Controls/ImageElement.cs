@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Xml.Serialization;
 
 using MyPiUI.Drawing;
+using MyPiUI.Drawing.Buffers;
 using MyPiUI.Primitives;
 
 namespace MyPiUI.UI.Controls;
@@ -56,15 +57,15 @@ public class ImageElement : UIElement
         Height = Image.Height;
     }
 
-    public override void Draw(DrawBuffer buffer)
+    public override void Draw(IDrawBuffer buffer)
     {
         if (Image is null)
         {
             return;
         }
         
-        buffer.SetClipRect(new Rectangle(X, Y, Width, Height));
-        buffer.DrawImage(X, Y, Image);
-        buffer.ClearClipRect();
+        //buffer.SetClipRect(new Rectangle(X, Y, Width, Height));
+        buffer.DrawImage(new Point(X, Y), Image.PixelData);
+        //buffer.ClearClipRect();
     }
 }

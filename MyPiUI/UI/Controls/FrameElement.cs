@@ -1,5 +1,6 @@
 using System.Xml.Serialization;
 using MyPiUI.Drawing;
+using MyPiUI.Drawing.Buffers;
 
 namespace MyPiUI.UI.Controls;
 
@@ -40,7 +41,7 @@ public class FrameElement : UIElement
         child.Init(graphicsContext);
     }
 
-    public override void Draw(DrawBuffer buffer)
+    public override void Draw(IDrawBuffer buffer)
     {
         if (Children.Count < 1)
         {
