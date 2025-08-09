@@ -132,6 +132,8 @@ public class MyEngine : IDisposable
 
         while (_isCalibratingTouch)
         {
+            Buffer.Clear();
+            
             var (x, y, isTouching) = _inputManager.GetAbsTouchState();
             double heldDuration = 0;
 
