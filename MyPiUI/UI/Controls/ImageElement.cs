@@ -20,9 +20,11 @@ public class ImageElement : UIElement
     public override void Init(MyGraphicsContext graphicsContext, IDrawBuffer buffer)
     {
         _graphicsContext = graphicsContext;
+        
+        LoadImage();
     }
 
-    public void LoadImage()
+    private void LoadImage()
     {
         Debug.Assert(_graphicsContext is not null);
         
@@ -65,7 +67,7 @@ public class ImageElement : UIElement
         }
         
         //buffer.SetClipRect(new Rectangle(X, Y, Width, Height));
-        buffer.DrawImage(new Point(X, Y), Image.PixelData);
+        buffer.DrawImage(new Rectangle(X, Y, Width, Height), Image.PixelData);
         //buffer.ClearClipRect();
     }
 }

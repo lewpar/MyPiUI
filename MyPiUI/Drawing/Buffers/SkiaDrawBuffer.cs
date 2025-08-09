@@ -143,10 +143,18 @@ public class SkiaDrawBuffer : IDrawBuffer
         });
     }
 
-    public void DrawImage(Point point, Span<byte> image)
+    public void DrawImage(Rectangle rect, Span<byte> image)
     {
-        var skImage = SKImage.FromEncodedData(image);
-        _canvas.DrawImage(skImage, new SKPoint(point.X, point.Y));
+        var skImage = SKImage.FromPixelCopy(new SKImageInfo()
+        {
+            ColorType = SKColorType.Bgra8888,
+            AlphaType = SKAlphaType.Unpremul,
+            
+            Width = rect.Width,
+            Height = rect.Height
+        }, image);
+
+        _canvas.DrawImage(skImage, new SKPoint(rect.X, rect.Y));
     }
 
     public void DrawText(Point position, string text, string fontFamily, float fontSize, Color color)

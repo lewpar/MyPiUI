@@ -80,7 +80,7 @@ public class ButtonElement : TextUIElement
     {
         _buffer = buffer;
         
-        RecalculateBounds();
+        CalculateBounds();
         
         if (Children.Count > 0)
         {
@@ -94,7 +94,7 @@ public class ButtonElement : TextUIElement
         }
     }
 
-    private void RecalculateBounds()
+    public override void CalculateBounds()
     {
         FontFamily = "Roboto";
         
@@ -105,6 +105,7 @@ public class ButtonElement : TextUIElement
         }
         
         var size = _buffer.MeasureText(Text ?? "", FontFamily, FontSize);
+        
         Width = (Width > 0 ? Width : size.Width) + (Padding * 2);
         Height = (Height > 0 ? Height : FontSize) + (Padding * 2);
     }

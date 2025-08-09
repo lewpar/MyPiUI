@@ -174,11 +174,6 @@ public class MyUI
         }
 
         SetupDatabinding(scene, element);
-
-        if (element is ImageElement image)
-        {
-            image.LoadImage();
-        }
         
         foreach (var child in element.Children)
         {

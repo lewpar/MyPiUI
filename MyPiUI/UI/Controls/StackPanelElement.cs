@@ -147,9 +147,6 @@ public class StackPanelElement : UIElement
     {
         UpdateStackPanelBounds();
         UpdateChildPositions(this);
-        
-        var panelBounds = new Rectangle(X, Y, Width, Height);
-        buffer.SetClipRect(panelBounds);
 
         if (Background is not null)
         {
@@ -160,7 +157,5 @@ public class StackPanelElement : UIElement
         {
             child.Draw(buffer);
         }
-
-        buffer.ClearClipRect();
     }
 }

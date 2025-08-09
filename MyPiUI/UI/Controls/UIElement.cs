@@ -121,6 +121,9 @@ public abstract class UIElement : INotifyPropertyChanged
         set => Background = string.IsNullOrWhiteSpace(value) ? null : Color.FromHex(value);
     }
 
+    [XmlIgnore]
+    public Rectangle Bounds => new Rectangle(X, Y, Width, Height);
+
     public virtual void Init(MyGraphicsContext graphicsContext, IDrawBuffer buffer)
     {
         foreach (var child in Children)
@@ -143,6 +146,11 @@ public abstract class UIElement : INotifyPropertyChanged
         {
             child.Update(deltaTimeMs);
         }
+    }
+
+    public virtual void CalculateBounds()
+    {
+        
     }
 
     public bool TryParseBindableInt(string? input, out int result)

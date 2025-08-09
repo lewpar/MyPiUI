@@ -132,8 +132,6 @@ public class MyEngine : IDisposable
 
         while (_isCalibratingTouch)
         {
-            Buffer.ClearDirtyRegions();
-
             var (x, y, isTouching) = _inputManager.GetAbsTouchState();
             double heldDuration = 0;
 
@@ -237,6 +235,17 @@ public class MyEngine : IDisposable
         Buffer.DrawText(new Point(x, y), $"Swap: {_drawMetrics.SwapTime:F2} ms", fontFamily, fontSize, color); y += lineHeight;
         Buffer.DrawText(new Point(x, y), $"Total: {_drawMetrics.TotalDrawTime:F2} ms", fontFamily, fontSize, color);
     }
+    
+    private void RenderDebugUI(UIElement element)
+    {
+        Buffer.DrawRect(element.Bounds, Color.Red);
+        Buffer.DrawText(new Point(element.X, element.Y), element.GetType().Name, "Roboto", 12f, Color.White);
+        
+        foreach (var child in element.Children)
+        {
+            RenderDebugUI(child);
+        }
+    }
 
     private void UpdateTouchPosition()
     {
@@ -252,17 +261,6 @@ public class MyEngine : IDisposable
         var y = _touchCursorPosition.Y * _myOptions.RenderHeight;
 
         Buffer.FillRect(new Rectangle((int)x, (int)y, 10, 10), isTouching ? Color.Red : Color.Gray);
-    }
-
-    private void RenderDebugUI(UIElement element)
-    {
-        Buffer.DrawRect(new Rectangle(element.X, element.Y, element.Width, element.Y), Color.Red);
-        Buffer.DrawText(new Point(element.X, element.Y), element.GetType().Name, "Roboto", 12f, Color.White);
-        
-        foreach (var child in element.Children)
-        {
-            RenderDebugUI(child);
-        }
     }
 
     public void Update()
@@ -301,16 +299,13 @@ public class MyEngine : IDisposable
         {
             throw new Exception("No scene available to render.");
         }
+        
+        Buffer.Clear();
 
         _deltaTimeMs = _deltaTimer.ElapsedMilliseconds;
         _deltaTimer.Restart();
 
         var totalTimer = Stopwatch.StartNew();
-
-        // Clear Dirty Regions
-        var clearTimer = Stopwatch.StartNew();
-        Buffer.ClearDirtyRegions();
-        clearTimer.Stop();
 
         // Scene Draw
         var sceneDrawTimer = Stopwatch.StartNew();
@@ -355,7 +350,6 @@ public class MyEngine : IDisposable
 
         _drawMetrics = new RenderTimingMetrics
         {
-            ClearTime = clearTimer.Elapsed.TotalMilliseconds,
             SceneDrawTime = sceneDrawTimer.Elapsed.TotalMilliseconds,
             UIDrawTime = uiDrawTimer.Elapsed.TotalMilliseconds,
             DebugUIDrawTime = debugUIDrawTimer.Elapsed.TotalMilliseconds,
