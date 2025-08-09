@@ -48,6 +48,8 @@ public class SceneManager
         
         if (!string.IsNullOrWhiteSpace(scene.UI))
         {
+            MyEngine.Instance.Buffer.Clear();
+            
             var uiFrame = MyUI.LoadUIElements(scene);
             scene.UIFrame = uiFrame;
             

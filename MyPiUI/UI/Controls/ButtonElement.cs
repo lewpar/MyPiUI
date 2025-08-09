@@ -56,6 +56,8 @@ public class ButtonElement : TextUIElement
     private DateTime _timeSinceLastTouch;
     private int _delayBetweenTouchesMs;
 
+    private IDrawBuffer? _buffer;
+
     public ButtonElement()
     {
         _timeSinceLastTouch = DateTime.Now;
@@ -76,6 +78,8 @@ public class ButtonElement : TextUIElement
 
     public override void Init(MyGraphicsContext graphicsContext, IDrawBuffer buffer)
     {
+        _buffer = buffer;
+        
         RecalculateBounds();
         
         if (Children.Count > 0)
@@ -92,7 +96,16 @@ public class ButtonElement : TextUIElement
 
     private void RecalculateBounds()
     {
-        Width = (Width > 0 ? Width : MeasureText(FontSize, Text ?? "")) + (Padding * 2);
+        FontFamily = "Roboto";
+        
+        if (_buffer is null ||
+            string.IsNullOrWhiteSpace(FontFamily))
+        {
+            return;
+        }
+        
+        var size = _buffer.MeasureText(Text ?? "", FontFamily, FontSize);
+        Width = (Width > 0 ? Width : size.Width) + (Padding * 2);
         Height = (Height > 0 ? Height : FontSize) + (Padding * 2);
     }
 
@@ -137,14 +150,15 @@ public class ButtonElement : TextUIElement
             _image.Draw(buffer);
         }
 
-        if (!string.IsNullOrWhiteSpace(Text) &&
+        if (_buffer is not null &&
+            !string.IsNullOrWhiteSpace(Text) &&
             !string.IsNullOrWhiteSpace(FontFamily))
         {
-            var textWidth = MeasureText(FontSize, Text);
-            var posX = X + (Width / 2) - (textWidth / 2);
+            var size = _buffer.MeasureText(Text, FontFamily, FontSize);
+            var posX = X + (Width / 2) - (size.Width / 2);
             var posY = Y + (Height / 2) - (FontSize / 2);
 
-            buffer.DrawText(new Point(posX, posY), Text, FontFamily, FontSize, Foreground);
+            buffer.DrawText(new Point(posX, posY + size.Height), Text, FontFamily, FontSize, Foreground);
         }
 
         //buffer.ClearClipRect();

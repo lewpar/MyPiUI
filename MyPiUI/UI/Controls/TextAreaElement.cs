@@ -16,7 +16,8 @@ public class TextAreaElement : TextUIElement
         if (!string.IsNullOrWhiteSpace(Text) &&
             !string.IsNullOrWhiteSpace(FontFamily))
         {
-            buffer.DrawText(new Point(X, Y), Text, FontFamily, FontSize, Foreground);
+            var size = buffer.MeasureText(Text, FontFamily, FontSize);
+            buffer.DrawText(new Point(X, Y + size.Height), Text, FontFamily, FontSize, Foreground);
         }
     }
 }

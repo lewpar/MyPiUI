@@ -145,11 +145,6 @@ public abstract class UIElement : INotifyPropertyChanged
         }
     }
 
-    public int MeasureText(int fontSize, string text)
-    {
-        return text.Length * fontSize;
-    }
-
     public bool TryParseBindableInt(string? input, out int result)
     {
         if (!string.IsNullOrWhiteSpace(input) &&

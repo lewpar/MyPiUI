@@ -113,14 +113,6 @@ public class MyEngine : IDisposable
         }
     }
     
-    private Point MeasureText(string text, int fontSize)
-    {
-        var textWidth = text.Length * fontSize;
-        var textHeight = fontSize;
-        
-        return new Point(textWidth, textHeight);
-    }
-
     private void CalibrateTouch(int holdTime = 3500)
     {
         if (RenderTarget is null)
