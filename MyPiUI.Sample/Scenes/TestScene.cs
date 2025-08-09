@@ -25,6 +25,13 @@ public class TestScene : MyScene
 
     private int _lastFontSizeUpdateSecond = -1;
 
+    private string? _currentTime;
+    public string? CurrentTime
+    {
+        get => _currentTime;
+        set => SetField(ref _currentTime, value);
+    }
+
     [ButtonHandler("SwitchToSecondaryScene")]
     private void SwitchToSecondaryScene()
     {
@@ -47,6 +54,7 @@ public class TestScene : MyScene
         }
         
         ToggleStateString = ToggleState.ToString();
+        CurrentTime = DateTime.Now.ToLongTimeString();
     
         base.Update(deltaTimeMs);
     }

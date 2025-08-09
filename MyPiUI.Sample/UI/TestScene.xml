@@ -12,5 +12,6 @@
         <ToggleButton is-toggled="{ToggleState}" width="50" />
         <TextArea text="{ToggleStateString}" font-size="12" />
         <Button handler="SwitchToSecondaryScene" text="Switch Scene" padding="8" />
+        <TextArea text="{CurrentTime}" />
     </StackPanel>
 </Frame>

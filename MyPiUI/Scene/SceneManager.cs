@@ -67,5 +67,11 @@ public class SceneManager
     public void Pop()
     {
         _scenes.Pop();
+
+        if (_sceneWatcher is not null &&
+            _scenes.Count > 0)
+        {
+            _sceneWatcher.SetScene(_scenes.Peek());
+        }
     }
 }
