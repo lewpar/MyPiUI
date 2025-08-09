@@ -17,7 +17,7 @@ public class ImageElement : UIElement
     
     private MyGraphicsContext? _graphicsContext;
 
-    public override void Init(MyGraphicsContext graphicsContext)
+    public override void Init(MyGraphicsContext graphicsContext, IDrawBuffer buffer)
     {
         _graphicsContext = graphicsContext;
     }

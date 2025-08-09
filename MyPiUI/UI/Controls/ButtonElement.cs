@@ -74,7 +74,7 @@ public class ButtonElement : TextUIElement
         }
     }
 
-    public override void Init(MyGraphicsContext graphicsContext)
+    public override void Init(MyGraphicsContext graphicsContext, IDrawBuffer buffer)
     {
         RecalculateBounds();
         
@@ -86,7 +86,7 @@ public class ButtonElement : TextUIElement
                 _image = image;
             }
             
-            base.Init(graphicsContext);
+            base.Init(graphicsContext, buffer);
         }
     }
 

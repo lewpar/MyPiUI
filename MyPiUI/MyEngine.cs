@@ -24,14 +24,11 @@ public class MyEngine : IDisposable
     public InputManager InputManager { get => _inputManager; }
     private InputManager _inputManager;
 
-    public MyGraphicsContext GraphicsContext
-    {
-        get;
-        init;
-    }
+    public MyGraphicsContext GraphicsContext { get; init; }
     
-    private IRenderTarget _renderTarget;
-    private IDrawBuffer _drawBuffer;
+    public IRenderTarget RenderTarget { get; init; }
+    public IDrawBuffer Buffer { get; init; }
+    
 
     private long _deltaTimeMs;
     private Stopwatch _deltaTimer;
@@ -58,21 +55,22 @@ public class MyEngine : IDisposable
         switch (myOptions.RenderMode)
         {
             case RenderMode.FrameBuffer:
-                _renderTarget = new FrameBufferRenderTarget(myOptions.FrameBufferDevice);
+                RenderTarget = new FrameBufferRenderTarget(myOptions.FrameBufferDevice);
                 break;
             
             case RenderMode.Raylib:
-                _renderTarget = new RaylibRenderTarget(myOptions.RenderWidth, myOptions.RenderHeight);
+                RenderTarget = new RaylibRenderTarget(myOptions.RenderWidth, myOptions.RenderHeight);
                 break;
             
             default:
                 throw new Exception("Invalid render mode, no render target could be selected.");
         }
 
-        GraphicsContext = _renderTarget.CreateGraphicsContext();
-        _drawBuffer = new SkiaDrawBuffer(GraphicsContext);
-        _drawBuffer.SetClearColor(myOptions.BackgroundColor);
-        _drawBuffer.Clear();
+        GraphicsContext = RenderTarget.CreateGraphicsContext();
+        
+        Buffer = new SkiaDrawBuffer(GraphicsContext);
+        Buffer.SetClearColor(myOptions.BackgroundColor);
+        Buffer.Clear();
     }
 
     public void Initialize()
@@ -125,7 +123,7 @@ public class MyEngine : IDisposable
 
     private void CalibrateTouch(int holdTime = 3500)
     {
-        if (_renderTarget is null)
+        if (RenderTarget is null)
         {
             throw new Exception("No render target initialized.");
         }
@@ -142,7 +140,7 @@ public class MyEngine : IDisposable
 
         while (_isCalibratingTouch)
         {
-            _drawBuffer.ClearDirtyRegions();
+            Buffer.ClearDirtyRegions();
 
             var (x, y, isTouching) = _inputManager.GetAbsTouchState();
             double heldDuration = 0;
@@ -184,24 +182,24 @@ public class MyEngine : IDisposable
             
             var phase = topLeftComplete ? "Bottom Right" : "Top Left";
             var mainText = $"Touch {phase} - {x:F0}, {y:F0}";
-            var mainSize = _drawBuffer.MeasureText(mainText, fontFamily, fontSize);
+            var mainSize = Buffer.MeasureText(mainText, fontFamily, fontSize);
             var mainX = (_myOptions.RenderWidth / 2) - (mainSize.Width / 2);
             var mainY = (_myOptions.RenderHeight / 2) - (mainSize.Height / 2);
 
-            _drawBuffer.DrawText(new Point(mainX, mainY), mainText, fontFamily, fontSize, Color.White);
+            Buffer.DrawText(new Point(mainX, mainY), mainText, fontFamily, fontSize, Color.White);
 
             // Draw hold progress text (if touching)
             if (isTouching)
             {
                 var holdText = $"Hold: {Math.Min(heldDuration, targetHoldTimeMs):F0} / {targetHoldTimeMs} ms";
-                var holdSize = _drawBuffer.MeasureText(holdText, fontFamily, fontSize);
+                var holdSize = Buffer.MeasureText(holdText, fontFamily, fontSize);
                 var holdX = (_myOptions.RenderWidth / 2) - (holdSize.Width / 2);
                 var holdY = mainY + mainSize.Height + 10; // 10 pixels below main text
 
-                _drawBuffer.DrawText(new Point(holdX, holdY), holdText, "Roboto", fontSize, Color.White);
+                Buffer.DrawText(new Point(holdX, holdY), holdText, "Roboto", fontSize, Color.White);
             }
             
-            _renderTarget.SwapBuffer(_drawBuffer.GetBuffer());
+            RenderTarget.SwapBuffer(Buffer.GetBuffer());
         }
 
         if (topLeft is null || bottomRight is null)
@@ -237,15 +235,15 @@ public class MyEngine : IDisposable
         int fontSize = 12;
         var color = _myOptions.ForegroundColor;
 
-        _drawBuffer.FillRect(new Rectangle(0, 0, totalWidth, totalHeight), _myOptions.BackgroundColor);
-        _drawBuffer.DrawText(new Point(x, y), $"Frame Δ: {_deltaTimeMs} ms", fontFamily, fontSize, color); y += lineHeight;
-        _drawBuffer.DrawText(new Point(x, y), $"Clear: {_drawMetrics.ClearTime:F2} ms", fontFamily, fontSize, color); y += lineHeight;
-        _drawBuffer.DrawText(new Point(x, y), $"Scene: {_drawMetrics.SceneDrawTime:F2} ms", fontFamily, fontSize, color); y += lineHeight;
-        _drawBuffer.DrawText(new Point(x, y), $"UI: {_drawMetrics.UIDrawTime:F2} ms", fontFamily, fontSize, color); y += lineHeight;
-        _drawBuffer.DrawText(new Point(x, y), $"Debug UI: {_drawMetrics.DebugUIDrawTime:F2} ms", fontFamily, fontSize, color); y += lineHeight;
-        _drawBuffer.DrawText(new Point(x, y), $"Metrics: {_drawMetrics.MetricsTime:F2} ms", fontFamily, fontSize, color); y += lineHeight;
-        _drawBuffer.DrawText(new Point(x, y), $"Swap: {_drawMetrics.SwapTime:F2} ms", fontFamily, fontSize, color); y += lineHeight;
-        _drawBuffer.DrawText(new Point(x, y), $"Total: {_drawMetrics.TotalDrawTime:F2} ms", fontFamily, fontSize, color);
+        Buffer.FillRect(new Rectangle(0, 0, totalWidth, totalHeight), _myOptions.BackgroundColor);
+        Buffer.DrawText(new Point(x, y), $"Frame Δ: {_deltaTimeMs} ms", fontFamily, fontSize, color); y += lineHeight;
+        Buffer.DrawText(new Point(x, y), $"Clear: {_drawMetrics.ClearTime:F2} ms", fontFamily, fontSize, color); y += lineHeight;
+        Buffer.DrawText(new Point(x, y), $"Scene: {_drawMetrics.SceneDrawTime:F2} ms", fontFamily, fontSize, color); y += lineHeight;
+        Buffer.DrawText(new Point(x, y), $"UI: {_drawMetrics.UIDrawTime:F2} ms", fontFamily, fontSize, color); y += lineHeight;
+        Buffer.DrawText(new Point(x, y), $"Debug UI: {_drawMetrics.DebugUIDrawTime:F2} ms", fontFamily, fontSize, color); y += lineHeight;
+        Buffer.DrawText(new Point(x, y), $"Metrics: {_drawMetrics.MetricsTime:F2} ms", fontFamily, fontSize, color); y += lineHeight;
+        Buffer.DrawText(new Point(x, y), $"Swap: {_drawMetrics.SwapTime:F2} ms", fontFamily, fontSize, color); y += lineHeight;
+        Buffer.DrawText(new Point(x, y), $"Total: {_drawMetrics.TotalDrawTime:F2} ms", fontFamily, fontSize, color);
     }
 
     private void UpdateTouchPosition()
@@ -261,13 +259,13 @@ public class MyEngine : IDisposable
         var x = _touchCursorPosition.X * _myOptions.RenderWidth;
         var y = _touchCursorPosition.Y * _myOptions.RenderHeight;
 
-        _drawBuffer.FillRect(new Rectangle((int)x, (int)y, 10, 10), isTouching ? Color.Red : Color.Gray);
+        Buffer.FillRect(new Rectangle((int)x, (int)y, 10, 10), isTouching ? Color.Red : Color.Gray);
     }
 
     private void RenderDebugUI(UIElement element)
     {
-        _drawBuffer.DrawRect(new Rectangle(element.X, element.Y, element.Width, element.Y), Color.Red);
-        _drawBuffer.DrawText(new Point(element.X, element.Y), element.GetType().Name, "Roboto", 12f, Color.White);
+        Buffer.DrawRect(new Rectangle(element.X, element.Y, element.Width, element.Y), Color.Red);
+        Buffer.DrawText(new Point(element.X, element.Y), element.GetType().Name, "Roboto", 12f, Color.White);
         
         foreach (var child in element.Children)
         {
@@ -277,7 +275,7 @@ public class MyEngine : IDisposable
 
     public void Update()
     {
-        if (_drawBuffer is null)
+        if (Buffer is null)
             throw new Exception("Frame buffer not initialized.");
 
         if (SceneManager.CurrentScene is null)
@@ -302,7 +300,7 @@ public class MyEngine : IDisposable
 
     public void Draw()
     {
-        if (_drawBuffer is null)
+        if (Buffer is null)
         {
             throw new Exception("Frame buffer not initialized.");
         }
@@ -319,17 +317,17 @@ public class MyEngine : IDisposable
 
         // Clear Dirty Regions
         var clearTimer = Stopwatch.StartNew();
-        _drawBuffer.ClearDirtyRegions();
+        Buffer.ClearDirtyRegions();
         clearTimer.Stop();
 
         // Scene Draw
         var sceneDrawTimer = Stopwatch.StartNew();
-        SceneManager.CurrentScene.Draw(_drawBuffer);
+        SceneManager.CurrentScene.Draw(Buffer);
         sceneDrawTimer.Stop();
 
         // UI Draw
         var uiDrawTimer = Stopwatch.StartNew();
-        SceneManager.CurrentScene.UIFrame?.Draw(_drawBuffer);
+        SceneManager.CurrentScene.UIFrame?.Draw(Buffer);
         uiDrawTimer.Stop();
 
         // Debug UI Draw
@@ -358,7 +356,7 @@ public class MyEngine : IDisposable
 
         // Swap Buffers
         var swapTimer = Stopwatch.StartNew();
-        _renderTarget.SwapBuffer(_drawBuffer.GetBuffer());
+        RenderTarget.SwapBuffer(Buffer.GetBuffer());
         swapTimer.Stop();
 
         totalTimer.Stop();

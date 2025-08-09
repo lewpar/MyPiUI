@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.IO.MemoryMappedFiles;
 using System.Text.RegularExpressions;
+using MyPiUI.Drawing.Buffers;
 
 namespace MyPiUI.Drawing.RenderTargets;
 

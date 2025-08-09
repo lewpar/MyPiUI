@@ -39,7 +39,7 @@ public class SceneManager
         }
 
         CurrentScene.UIFrame = MyUI.LoadUIElements(CurrentScene);
-        CurrentScene.UIFrame.Init(MyEngine.Instance.GraphicsContext);
+        CurrentScene.UIFrame.Init(MyEngine.Instance.GraphicsContext, MyEngine.Instance.Buffer);
     }
 
     public void Push(MyScene scene)
@@ -51,7 +51,7 @@ public class SceneManager
             var uiFrame = MyUI.LoadUIElements(scene);
             scene.UIFrame = uiFrame;
             
-            uiFrame.Init(MyEngine.Instance.GraphicsContext);
+            uiFrame.Init(MyEngine.Instance.GraphicsContext, MyEngine.Instance.Buffer);
 
             if (_sceneWatcher is not null)
             {

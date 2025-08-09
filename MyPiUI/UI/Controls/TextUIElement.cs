@@ -1,6 +1,7 @@
 using System.Xml.Serialization;
 
 using MyPiUI.Drawing;
+using MyPiUI.Drawing.Buffers;
 
 namespace MyPiUI.UI.Controls;
 
@@ -37,22 +38,29 @@ public abstract class TextUIElement : UIElement
     [XmlIgnore]
     public int FontSize { get; set; }
 
-    public override void Init(MyGraphicsContext graphicsContext)
+    private IDrawBuffer? _buffer;
+
+    public override void Init(MyGraphicsContext graphicsContext, IDrawBuffer buffer)
     {
+        _buffer = buffer;
+        
         CalculateBounds();
-        base.Init(graphicsContext);
+        
+        base.Init(graphicsContext, buffer);
     }
 
     public void CalculateBounds()
     {
-        if (string.IsNullOrWhiteSpace(Text))
+        if (string.IsNullOrWhiteSpace(Text) ||
+            string.IsNullOrWhiteSpace(FontFamily) ||
+            _buffer is null)
         {
             return;
         }
 
-        var (width, height) = FontRenderer.MeasureText(Text, FontSize);
+        var size = _buffer.MeasureText(Text, FontFamily, FontSize);
         
-        Width = width;
-        Height = height;
+        Width = size.Width;
+        Height = size.Height;
     }
 }
