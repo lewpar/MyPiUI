@@ -1,12 +1,13 @@
 using System.Xml.Serialization;
 using MyPiUI.Drawing;
+using MyPiUI.Drawing.Buffers;
 
 namespace MyPiUI.UI.Controls;
 
 [XmlRoot("Frame", Namespace = MyUI.Namespace)]
 public class FrameElement : UIElement
 {
-    public override void Init(MyGraphicsContext graphicsContext)
+    public override void Init(MyGraphicsContext graphicsContext, IDrawBuffer buffer)
     {
         if (Children.Count < 1)
         {
@@ -37,10 +38,10 @@ public class FrameElement : UIElement
             child.Height = Padding != 0 ? Height - (Padding * 2) : Height;
         }
         
-        child.Init(graphicsContext);
+        child.Init(graphicsContext, buffer);
     }
 
-    public override void Draw(DrawBuffer buffer)
+    public override void Draw(IDrawBuffer buffer)
     {
         if (Children.Count < 1)
         {

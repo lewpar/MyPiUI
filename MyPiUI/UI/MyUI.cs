@@ -4,6 +4,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+
 using MyPiUI.Scene;
 using MyPiUI.UI.Attributes;
 using MyPiUI.UI.Controls;
@@ -173,11 +174,6 @@ public class MyUI
         }
 
         SetupDatabinding(scene, element);
-
-        if (element is ImageElement image)
-        {
-            image.LoadImage();
-        }
         
         foreach (var child in element.Children)
         {
@@ -185,22 +181,22 @@ public class MyUI
         }
     }
 
-    public static async Task<string> LoadXmlFromPathAsync(string path)
+    public static string LoadXmlFromPath(string path)
     {
         if (!File.Exists(path))
         {
             throw new FileNotFoundException($"No XML file exists at path '{path}'.");
         }
 
-        var xml = await File.ReadAllTextAsync(path);
+        var xml = File.ReadAllText(path);
         
         return xml;
     }
 
-    public static async Task<FrameElement> LoadUIElementsAsync(MyScene scene)
+    public static FrameElement LoadUIElements(MyScene scene)
     {
         var path = GetXmlPath(scene);
-        var xml = await LoadXmlFromPathAsync(path);
+        var xml = LoadXmlFromPath(path);
         using var xmlMemoryStream = new MemoryStream(Encoding.UTF8.GetBytes(xml));
         
         var xmlSettings = new XmlReaderSettings();

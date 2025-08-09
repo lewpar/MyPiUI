@@ -38,8 +38,8 @@ public class SceneManager
             return;
         }
 
-        CurrentScene.UIFrame = MyUI.LoadUIElementsAsync(CurrentScene).GetAwaiter().GetResult();
-        CurrentScene.UIFrame.Init(MyEngine.Instance.GraphicsContext);
+        CurrentScene.UIFrame = MyUI.LoadUIElements(CurrentScene);
+        CurrentScene.UIFrame.Init(MyEngine.Instance.GraphicsContext, MyEngine.Instance.Buffer);
     }
 
     public void Push(MyScene scene)
@@ -48,10 +48,12 @@ public class SceneManager
         
         if (!string.IsNullOrWhiteSpace(scene.UI))
         {
-            var uiFrame = MyUI.LoadUIElementsAsync(scene).GetAwaiter().GetResult();
+            MyEngine.Instance.Buffer.Clear();
+            
+            var uiFrame = MyUI.LoadUIElements(scene);
             scene.UIFrame = uiFrame;
             
-            uiFrame.Init(MyEngine.Instance.GraphicsContext);
+            uiFrame.Init(MyEngine.Instance.GraphicsContext, MyEngine.Instance.Buffer);
 
             if (_sceneWatcher is not null)
             {
@@ -65,5 +67,11 @@ public class SceneManager
     public void Pop()
     {
         _scenes.Pop();
+
+        if (_sceneWatcher is not null &&
+            _scenes.Count > 0)
+        {
+            _sceneWatcher.SetScene(_scenes.Peek());
+        }
     }
 }

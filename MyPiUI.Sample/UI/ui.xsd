@@ -12,6 +12,19 @@
         <xs:attribute name="height" type="BindableInt" />
 
         <xs:attribute name="padding" type="BindableInt" />
+
+        <xs:attribute name="foreground" type="xs:string" default="#ffffff" />
+        <xs:attribute name="background" type="xs:string" default="#202020" />
+    </xs:complexType>
+    
+    <xs:complexType name="TextUIElement">
+        <xs:complexContent>
+            <xs:extension base="UIElement">
+                <xs:attribute name="text" type="xs:string" />
+                <xs:attribute name="font-family" type="xs:string" default="Roboto Mono" />
+                <xs:attribute name="font-size" type="BindableInt" default="14" />
+            </xs:extension>
+        </xs:complexContent>
     </xs:complexType>
 
     <xs:complexType name="StackPanelType">
@@ -27,7 +40,6 @@
                         <xs:element ref="ToggleButton" />
                     </xs:choice>
                 </xs:sequence>
-                <xs:attribute name="background" type="xs:string" />
                 <xs:attribute name="gap" type="BindableInt" />
                 <xs:attribute name="orientation" type="BindableInt" default="0" />
                 <xs:attribute name="content-alignment" type="BindableInt" default="0" />
@@ -86,18 +98,14 @@
             <xs:attribute name="height" type="BindableInt" />
         </xs:complexType>
     </xs:element>
+    
+    <xs:complexType name="TextAreaType">
+        <xs:complexContent>
+            <xs:extension base="TextUIElement" />
+        </xs:complexContent>
+    </xs:complexType>
 
-    <xs:element name="TextArea">
-        <xs:complexType>
-            <xs:attribute name="text" type="xs:string" />
-            <xs:attribute name="font-size" type="xs:string" default="8" />
-
-            <xs:attribute name="x" type="BindableInt" />
-            <xs:attribute name="y" type="BindableInt" />
-
-            <xs:attribute name="foreground" type="xs:string" default="#ffffff" />
-        </xs:complexType>
-    </xs:element>
+    <xs:element name="TextArea" type="TextAreaType" />
 
     <xs:element name="ToggleButton">
         <xs:complexType>

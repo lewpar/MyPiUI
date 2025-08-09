@@ -2,15 +2,16 @@
 <Frame xmlns="http://my.kuipi.com/ui"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://my.kuipi.com/ui ui.xsd">
-    <StackPanel padding="1" background="#303030">
-        <StackPanel orientation="0" content-alignment="1" padding="10" gap="10" background="#202020">
-            <TextArea text="Hello, World!" />
-            <TextArea text="Foo" />
-            <TextArea text="Bar" />
-            <Rectangle width="200" height="2" background="#808080" />
-            <ToggleButton is-toggled="{ToggleState}" width="50" />
-            <TextArea text="{ToggleStateString}" />
-            <Button handler="SwitchToSecondaryScene" text="Switch Scene" padding="8" />
-        </StackPanel>
+    <StackPanel orientation="0" content-alignment="1" padding="10" gap="10" background="#202020">
+        <TextArea text="Hello, World!" font-size="19" foreground="#ff0000" />
+        <TextArea text="Foo" font-size="20" />
+        <TextArea text="Bar" font-size="50" />
+        <TextArea text="Ping" font-size="16" />
+        <TextArea text="Pong" font-size="8" />
+        <Rectangle width="200" height="2" background="#808080" />
+        <ToggleButton is-toggled="{ToggleState}" width="50" />
+        <TextArea text="{ToggleStateString}" font-size="12" />
+        <Button handler="SwitchToSecondaryScene" text="Switch Scene" padding="8" />
+        <TextArea text="{CurrentTime}" />
     </StackPanel>
 </Frame>

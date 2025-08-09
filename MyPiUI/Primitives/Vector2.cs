@@ -1,6 +1,6 @@
 namespace MyPiUI.Primitives;
 
-public class Vector2
+public struct Vector2
 {
     public float X { get; init; }
     public float Y { get; init; }

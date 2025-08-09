@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.IO.MemoryMappedFiles;
 using System.Text.RegularExpressions;
+using MyPiUI.Drawing.Buffers;
 
 namespace MyPiUI.Drawing.RenderTargets;
 
@@ -45,29 +46,14 @@ public class FrameBufferRenderTarget : IRenderTarget, IDisposable
         _frameBufferAccessor = _frameBufferMemoryMap.CreateViewAccessor(0, frameBufferSize, MemoryMappedFileAccess.Write);
     }
     
-    public void SwapBuffer(byte[] buffer)
+    public void SwapBuffer(ReadOnlySpan<byte> buffer)
     {
         if (buffer.Length != _expectedBufferSize)
         {
             throw new Exception($"Invalid buffer size. Expected size of '{_expectedBufferSize}' got '{buffer.Length}'.");
         }
         
-        unsafe
-        {
-            fixed (byte* src = buffer)
-            {
-                byte* dst = null;
-                _frameBufferAccessor.SafeMemoryMappedViewHandle.AcquirePointer(ref dst);
-                try
-                {
-                    Buffer.MemoryCopy(src, dst, buffer.Length, buffer.Length);
-                }
-                finally
-                {
-                    _frameBufferAccessor.SafeMemoryMappedViewHandle.ReleasePointer();
-                }
-            }
-        }
+        _frameBufferAccessor.SafeMemoryMappedViewHandle.WriteSpan<byte>(0, buffer);
     }
 
     public MyGraphicsContext CreateGraphicsContext()
