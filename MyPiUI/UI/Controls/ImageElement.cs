@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Xml.Serialization;
 
 using MyPiUI.Drawing;
+using MyPiUI.Drawing.Buffers;
 using MyPiUI.Primitives;
 
 namespace MyPiUI.UI.Controls;
@@ -16,12 +17,14 @@ public class ImageElement : UIElement
     
     private MyGraphicsContext? _graphicsContext;
 
-    public override void Init(MyGraphicsContext graphicsContext)
+    public override void Init(MyGraphicsContext graphicsContext, IDrawBuffer buffer)
     {
         _graphicsContext = graphicsContext;
+        
+        LoadImage();
     }
 
-    public void LoadImage()
+    private void LoadImage()
     {
         Debug.Assert(_graphicsContext is not null);
         
@@ -56,15 +59,15 @@ public class ImageElement : UIElement
         Height = Image.Height;
     }
 
-    public override void Draw(DrawBuffer buffer)
+    public override void Draw(IDrawBuffer buffer)
     {
         if (Image is null)
         {
             return;
         }
         
-        buffer.SetClipRect(new Rectangle(X, Y, Width, Height));
-        buffer.DrawImage(X, Y, Image);
-        buffer.ClearClipRect();
+        //buffer.SetClipRect(new Rectangle(X, Y, Width, Height));
+        buffer.DrawImage(new Rectangle(X, Y, Width, Height), Image.PixelData);
+        //buffer.ClearClipRect();
     }
 }

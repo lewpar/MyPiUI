@@ -1,7 +1,9 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Xml.Serialization;
+
 using MyPiUI.Drawing;
+using MyPiUI.Drawing.Buffers;
 using MyPiUI.Primitives;
 
 namespace MyPiUI.UI.Controls;
@@ -119,15 +121,18 @@ public abstract class UIElement : INotifyPropertyChanged
         set => Background = string.IsNullOrWhiteSpace(value) ? null : Color.FromHex(value);
     }
 
-    public virtual void Init(MyGraphicsContext graphicsContext)
+    [XmlIgnore]
+    public Rectangle Bounds => new Rectangle(X, Y, Width, Height);
+
+    public virtual void Init(MyGraphicsContext graphicsContext, IDrawBuffer buffer)
     {
         foreach (var child in Children)
         {
-            child.Init(graphicsContext);
+            child.Init(graphicsContext, buffer);
         }
     }
 
-    public virtual void Draw(DrawBuffer buffer)
+    public virtual void Draw(IDrawBuffer buffer)
     {
         foreach (var child in Children)
         {
@@ -143,9 +148,9 @@ public abstract class UIElement : INotifyPropertyChanged
         }
     }
 
-    public int MeasureText(int fontSize, string text)
+    public virtual void CalculateBounds()
     {
-        return text.Length * fontSize;
+        
     }
 
     public bool TryParseBindableInt(string? input, out int result)

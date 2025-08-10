@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using MyPiUI.Drawing;
+
+using MyPiUI.Drawing.Buffers;
 using MyPiUI.Input;
 using MyPiUI.UI.Controls;
 
@@ -13,7 +14,8 @@ public class MyScene : INotifyPropertyChanged
     public required string UI { get; init; }
     public FrameElement? UIFrame { get; set; }
 
-    public virtual void Draw(DrawBuffer buffer) { }
+    public virtual void Init() { }
+    public virtual void Draw(IDrawBuffer buffer) { }
     public virtual void Update(float deltaTimeMs) { }
     public event PropertyChangedEventHandler? PropertyChanged;
 

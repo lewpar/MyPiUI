@@ -1,31 +1,14 @@
 using System.Xml.Serialization;
+
 using MyPiUI.Drawing;
+using MyPiUI.Drawing.Buffers;
 using MyPiUI.Input;
 using MyPiUI.Primitives;
 
 namespace MyPiUI.UI.Controls;
 
-public class ButtonElement : UIElement
+public class ButtonElement : TextUIElement
 {
-    [XmlAttribute("text")]
-    public string? Text { get; set; }
-
-    private string? _bindableFontSize;
-    [XmlAttribute("font-size")]
-    public string? BindableFontSize
-    {
-        get => _bindableFontSize;
-        set
-        {
-            _bindableFontSize = value;
-            if (TryParseBindableInt(value, out var parsed))
-                FontSize = parsed;
-        }
-    }
-
-    [XmlIgnore]
-    public int FontSize { get; set; }
-
     private string? _bindableBorderSize;
     [XmlAttribute("border-size")]
     public string? BindableBorderSize
@@ -73,6 +56,8 @@ public class ButtonElement : UIElement
     private DateTime _timeSinceLastTouch;
     private int _delayBetweenTouchesMs;
 
+    private IDrawBuffer? _buffer;
+
     public ButtonElement()
     {
         _timeSinceLastTouch = DateTime.Now;
@@ -91,9 +76,11 @@ public class ButtonElement : UIElement
         }
     }
 
-    public override void Init(MyGraphicsContext graphicsContext)
+    public override void Init(MyGraphicsContext graphicsContext, IDrawBuffer buffer)
     {
-        RecalculateBounds();
+        _buffer = buffer;
+        
+        CalculateBounds();
         
         if (Children.Count > 0)
         {
@@ -103,13 +90,23 @@ public class ButtonElement : UIElement
                 _image = image;
             }
             
-            base.Init(graphicsContext);
+            base.Init(graphicsContext, buffer);
         }
     }
 
-    private void RecalculateBounds()
+    public override void CalculateBounds()
     {
-        Width = (Width > 0 ? Width : MeasureText(FontSize, Text ?? "")) + (Padding * 2);
+        FontFamily = "Roboto";
+        
+        if (_buffer is null ||
+            string.IsNullOrWhiteSpace(FontFamily))
+        {
+            return;
+        }
+        
+        var size = _buffer.MeasureText(Text ?? "", FontFamily, FontSize);
+        
+        Width = (Width > 0 ? Width : size.Width) + (Padding * 2);
         Height = (Height > 0 ? Height : FontSize) + (Padding * 2);
     }
 
@@ -125,20 +122,20 @@ public class ButtonElement : UIElement
         base.Update(deltaTimeMs);
     }
 
-    public override void Draw(DrawBuffer buffer)
+    public override void Draw(IDrawBuffer buffer)
     {
-        buffer.SetClipRect(new Rectangle(X, Y, Width, Height));
+        //buffer.SetClipRect(new Rectangle(X, Y, Width, Height));
 
         if (Background is not null &&
             !_currentTouchState)
         {
-            buffer.FillRect(X, Y, Width, Height, Background.Value, 5);   
+            buffer.FillRect(new Rectangle(X, Y, Width, Height), Background.Value);   
         }
         
         if (BackgroundHover is not null &&
             _currentTouchState)
         {
-            buffer.FillRect(X, Y, Width, Height, BackgroundHover.Value, 5);   
+            buffer.FillRect(new Rectangle(X, Y, Width, Height), BackgroundHover.Value);   
         }
 
         if (_image is not null)
@@ -154,15 +151,17 @@ public class ButtonElement : UIElement
             _image.Draw(buffer);
         }
 
-        if (!string.IsNullOrWhiteSpace(Text))
+        if (_buffer is not null &&
+            !string.IsNullOrWhiteSpace(Text) &&
+            !string.IsNullOrWhiteSpace(FontFamily))
         {
-            var textWidth = MeasureText(FontSize, Text);
-            var posX = X + (Width / 2) - (textWidth / 2);
+            var size = _buffer.MeasureText(Text, FontFamily, FontSize);
+            var posX = X + (Width / 2) - (size.Width / 2);
             var posY = Y + (Height / 2) - (FontSize / 2);
 
-            buffer.DrawText(posX, posY, Text, Foreground, FontSize);
+            buffer.DrawText(new Point(posX, posY + size.Height), Text, FontFamily, FontSize, Foreground);
         }
 
-        buffer.ClearClipRect();
+        //buffer.ClearClipRect();
     }
 }

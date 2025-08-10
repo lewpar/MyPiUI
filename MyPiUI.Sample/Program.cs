@@ -17,8 +17,8 @@ class Program
             TouchDevice = InputDeviceEnumerator.AutoDetectTouchDevice(),
             
             HideConsoleCaret = true,
-            ShowMetrics = false,
-            ShowDebugUI = false,
+            ShowMetrics = true,
+            ShowDebugUI = true,
             
             BackgroundColor = Color.Black,
             ForegroundColor = Color.White,

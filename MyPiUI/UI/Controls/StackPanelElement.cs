@@ -1,5 +1,6 @@
 using System.Xml.Serialization;
 using MyPiUI.Drawing;
+using MyPiUI.Drawing.Buffers;
 using MyPiUI.Primitives;
 
 namespace MyPiUI.UI.Controls;
@@ -142,24 +143,19 @@ public class StackPanelElement : UIElement
         }
     }
 
-    public override void Draw(DrawBuffer buffer)
+    public override void Draw(IDrawBuffer buffer)
     {
         UpdateStackPanelBounds();
         UpdateChildPositions(this);
-        
-        var panelBounds = new Rectangle(X, Y, Width, Height);
-        buffer.SetClipRect(panelBounds);
 
         if (Background is not null)
         {
-            buffer.FillRect(X, Y, Width, Height, Background.Value, 5);
+            buffer.FillRect(new Rectangle(X, Y, Width, Height), Background.Value);
         }
 
         foreach (var child in Children)
         {
             child.Draw(buffer);
         }
-
-        buffer.ClearClipRect();
     }
 }

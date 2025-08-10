@@ -1,3 +1,5 @@
+using MyPiUI.Drawing.Buffers;
+
 namespace MyPiUI.Drawing;
 
 public class MyGraphicsContext
