@@ -42,7 +42,8 @@ public class SkiaDrawBuffer : IDrawBuffer
             return font;
         }
         
-        _cachedFonts.Add((fontFamily, fontSize), new SKFont(SKTypeface.FromFamilyName(fontFamily), fontSize));
+        _cachedFonts.Add((fontFamily, fontSize), 
+            new SKFont(SKTypeface.FromFamilyName(fontFamily), fontSize));
 
         return _cachedFonts[(fontFamily, fontSize)];
     }
@@ -143,7 +144,7 @@ public class SkiaDrawBuffer : IDrawBuffer
         });
     }
 
-    public void DrawImage(Rectangle rect, Span<byte> image)
+    public void DrawImage(Rectangle rect, Span<byte> pixels)
     {
         var skImage = SKImage.FromPixelCopy(new SKImageInfo()
         {
@@ -152,7 +153,7 @@ public class SkiaDrawBuffer : IDrawBuffer
             
             Width = rect.Width,
             Height = rect.Height
-        }, image);
+        }, pixels);
 
         _canvas.DrawImage(skImage, new SKPoint(rect.X, rect.Y));
     }
@@ -160,6 +161,7 @@ public class SkiaDrawBuffer : IDrawBuffer
     public void DrawText(Point position, string text, string fontFamily, float fontSize, Color color)
     {
         _canvas.DrawText(text, position.X, position.Y, 
+            SKTextAlign.Left,
             GetSkFont(fontFamily, fontSize),
             new SKPaint()
             {

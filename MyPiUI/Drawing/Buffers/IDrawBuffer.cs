@@ -18,7 +18,7 @@ public interface IDrawBuffer
     public void DrawRect(Rectangle rect, Color color);
     public void FillRect(Rectangle rect, Color color);
 
-    public void DrawImage(Rectangle rect, Span<byte> image);
+    public void DrawImage(Rectangle rect, Span<byte> pixels);
 
     public void DrawText(Point position, string text, string fontFamily, float fontSize, Color color);
     public Size MeasureText(string text, string fontFamily, float fontSize);
