@@ -16,12 +16,12 @@ public class FrameElement : UIElement
 
         if (Height == 0)
         {
-            Height = MyEngine.Instance?.MyOptions.RenderHeight ?? 0;
+            Height = MyEngine.Instance?.MyOptions.RenderHeight - 1 ?? 0;
         }
 
         if (Width == 0)
         {
-            Width = MyEngine.Instance?.MyOptions.RenderWidth ?? 0;
+            Width = MyEngine.Instance?.MyOptions.RenderWidth - 1 ?? 0;
         }
 
         var child = Children[0];
