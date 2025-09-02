@@ -24,6 +24,8 @@ public class MyEngine : IDisposable
     public InputManager InputManager { get => _inputManager; }
     private InputManager _inputManager;
 
+    private TouchCalibrator _touchCalibrator;
+
     public MyGraphicsContext GraphicsContext { get; init; }
     
     public IRenderTarget RenderTarget { get; init; }
@@ -71,6 +73,8 @@ public class MyEngine : IDisposable
         Buffer = new SkiaDrawBuffer(GraphicsContext);
         Buffer.SetClearColor(myOptions.BackgroundColor);
         Buffer.Clear();
+
+        _touchCalibrator = new TouchCalibrator(_inputManager, Buffer, RenderTarget, myOptions);
     }
 
     public void Initialize()
@@ -115,102 +119,7 @@ public class MyEngine : IDisposable
     
     private void CalibrateTouch(int holdTime = 3500)
     {
-        if (RenderTarget is null)
-        {
-            throw new Exception("No render target initialized.");
-        }
-
-        _isCalibratingTouch = true;
-        bool topLeftComplete = false;
-        bool pointConfirmed = false;
-
-        var targetHoldTimeMs = holdTime;
-        var holdStartTime = DateTime.MinValue;
-
-        Point? topLeft = null;
-        Point? bottomRight = null;
-
-        while (_isCalibratingTouch)
-        {
-            Buffer.Clear();
-            
-            var (x, y, isTouching) = _inputManager.GetAbsTouchState();
-            double heldDuration = 0;
-
-            if (isTouching)
-            {
-                if (holdStartTime == DateTime.MinValue)
-                    holdStartTime = DateTime.UtcNow;
-
-                heldDuration = (DateTime.UtcNow - holdStartTime).TotalMilliseconds;
-
-                if (heldDuration >= targetHoldTimeMs && !pointConfirmed)
-                {
-                    if (!topLeftComplete)
-                    {
-                        topLeft = new Point((int)x, (int)y);
-                        topLeftComplete = true;
-                    }
-                    else
-                    {
-                        bottomRight = new Point((int)x, (int)y);
-                        _isCalibratingTouch = false;
-                    }
-
-                    holdStartTime = DateTime.MinValue;
-                    pointConfirmed = false;
-                    continue;
-                }
-            }
-            else
-            {
-                holdStartTime = DateTime.MinValue;
-                pointConfirmed = false;
-            }
-
-            // Draw main calibration instruction text
-            var fontSize = 25f;
-            var fontFamily = "Roboto";
-            
-            var phase = topLeftComplete ? "Bottom Right" : "Top Left";
-            var mainText = $"Touch {phase} - {x:F0}, {y:F0}";
-            var mainSize = Buffer.MeasureText(mainText, fontFamily, fontSize);
-            var mainX = (_myOptions.RenderWidth / 2) - (mainSize.Width / 2);
-            var mainY = (_myOptions.RenderHeight / 2) - (mainSize.Height / 2);
-
-            Buffer.DrawText(new Point(mainX, mainY), mainText, fontFamily, fontSize, Color.White);
-
-            // Draw hold progress text (if touching)
-            if (isTouching)
-            {
-                var holdText = $"Hold: {Math.Min(heldDuration, targetHoldTimeMs):F0} / {targetHoldTimeMs} ms";
-                var holdSize = Buffer.MeasureText(holdText, fontFamily, fontSize);
-                var holdX = (_myOptions.RenderWidth / 2) - (holdSize.Width / 2);
-                var holdY = mainY + mainSize.Height + 10; // 10 pixels below main text
-
-                Buffer.DrawText(new Point(holdX, holdY), holdText, "Roboto", fontSize, Color.White);
-            }
-            
-            RenderTarget.SwapBuffer(Buffer.GetBuffer());
-        }
-
-        if (topLeft is null || bottomRight is null)
-        {
-            throw new Exception("Failed to calibrate touch input.");
-        }
-
-        var config = RuntimeConfig.Instance;
-        if (config is null)
-        {
-            throw new Exception("Failed to save touch calibration, runtime config is not loaded.");
-        }
-
-        config.MinTouchX = Math.Min(topLeft.Value.X, bottomRight.Value.X);
-        config.MinTouchY = Math.Min(topLeft.Value.Y, bottomRight.Value.Y);
-        config.MaxTouchX = Math.Max(topLeft.Value.X, bottomRight.Value.X);
-        config.MaxTouchY = Math.Max(topLeft.Value.Y, bottomRight.Value.Y);
-        
-        config.Save();
+        _touchCalibrator.RunCalibration(holdTime);
     }
 
     private void RenderMetrics()

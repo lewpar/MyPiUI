@@ -4,6 +4,18 @@
            xmlns="http://my.kuipi.com/ui"
            elementFormDefault="qualified">
 
+    <xs:simpleType name="BindableInt">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="\{\w+\}|\d+" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="BindableBool">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="\{\w+\}|true|false" />
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:complexType name="UIElement">
         <xs:attribute name="x" type="BindableInt" />
         <xs:attribute name="y" type="BindableInt" />
@@ -27,6 +39,16 @@
         </xs:complexContent>
     </xs:complexType>
 
+    <xs:element name="Frame">
+        <xs:complexType>
+            <xs:choice minOccurs="1" maxOccurs="1">
+                <xs:element ref="Absolute" />
+                <xs:element ref="Grid" />
+                <xs:element ref="StackPanel" />
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+
     <xs:complexType name="StackPanelType">
         <xs:complexContent>
             <xs:extension base="UIElement">
@@ -49,25 +71,15 @@
 
     <xs:element name="StackPanel" type="StackPanelType" />
 
-    <xs:element name="Frame">
-        <xs:complexType>
-            <xs:choice minOccurs="1" maxOccurs="1">
-                <xs:element ref="Absolute" />
-                <xs:element ref="Grid" />
-                <xs:element ref="StackPanel" />
-            </xs:choice>
-        </xs:complexType>
-    </xs:element>
-
-    <xs:element name="Rectangle">
-        <xs:complexType>
-            <xs:attribute name="x" type="BindableInt" />
-            <xs:attribute name="y" type="BindableInt" />
-            <xs:attribute name="width" type="BindableInt" use="required" />
-            <xs:attribute name="height" type="BindableInt" use="required" />
-            <xs:attribute name="background" type="xs:string" default="#202020" />
-        </xs:complexType>
-    </xs:element>
+    <!-- RECTANGLE START -->
+    <xs:complexType name="RectangleType">
+        <xs:complexContent>
+            <xs:extension base="UIElement" />
+        </xs:complexContent>
+    </xs:complexType>
+    
+    <xs:element name="Rectangle" type="RectangleType" />
+    <!-- RECTANGLE END -->
 
     <xs:element name="Grid">
         <xs:complexType>
@@ -161,16 +173,4 @@
             <xs:attribute name="padding" type="BindableInt" default="8" />
         </xs:complexType>
     </xs:element>
-
-    <xs:simpleType name="BindableInt">
-        <xs:restriction base="xs:string">
-            <xs:pattern value="\{\w+\}|\d+" />
-        </xs:restriction>
-    </xs:simpleType>
-
-    <xs:simpleType name="BindableBool">
-        <xs:restriction base="xs:string">
-            <xs:pattern value="\{\w+\}|true|false" />
-        </xs:restriction>
-    </xs:simpleType>
 </xs:schema>
