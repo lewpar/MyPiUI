@@ -105,6 +105,7 @@ public readonly record struct Color
     public static Color Black => new Color(0, 0, 0);
     public static Color White => new Color(255, 255, 255);
     public static Color Gray => new Color(50, 50, 50);
+    public static Color LightGray => new Color(128, 128, 128);
     public static Color Orange => new Color(255, 165, 0);
     public static Color Red => new Color(255, 0, 0);
     public static Color Green => new Color(0, 255, 0);
