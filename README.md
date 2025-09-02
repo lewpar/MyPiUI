@@ -22,6 +22,9 @@ NuGet package coming soon..
   - `apt install fbset`
 - `ImageSharp` - Used to support loading of all image file types.
 
+## Preview
+![FrameBufferViewer](.github/assets/fbviewer.png)
+
 ## FAQ
 ### I get permission denied when trying to draw
 - Linux user must be in the `video` and `input` user groups (requires relog).
