@@ -16,6 +16,8 @@ class Program
             
             TouchDevice = InputDeviceEnumerator.AutoDetectTouchDevice(),
             SwapTouchXAndY = true,
+            InvertTouchX = true,
+            InvertTouchY = false,
             
             HideConsoleCaret = true,
             ShowMetrics = true,

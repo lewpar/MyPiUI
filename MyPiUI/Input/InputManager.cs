@@ -8,6 +8,8 @@ public class InputManager : IDisposable
     private static int _screenHeight;
     
     private readonly bool _isTouchXYSwapped;
+    private readonly bool _isTouchXInverted;
+    private readonly bool _isTouchYInverted;
     
     private TouchReader? _touchReader;
 
@@ -19,6 +21,8 @@ public class InputManager : IDisposable
         }
 
         _isTouchXYSwapped = options.SwapTouchXAndY;
+        _isTouchXInverted = options.InvertTouchX;
+        _isTouchYInverted = options.InvertTouchY;
 
         if (Instance is null)
         {
@@ -37,24 +41,40 @@ public class InputManager : IDisposable
     
     public (float normX, float normY, bool isTouching) GetTouchState()
     {
+        if (_touchReader is null)
+        {
+            return (0, 0, false);
+        }
+
+        var (x, y, isTouching) = _touchReader.GetTouchState();
+        
         if (_isTouchXYSwapped)
         {
-            var (x, y, isTouching) = _touchReader?.GetTouchState() ?? (0, 0, false);
-            return (y, x, isTouching);
+            return (_isTouchXInverted ? -y : y, 
+                _isTouchYInverted ? -x : x, isTouching);
         }
         
-        return _touchReader?.GetTouchState() ?? (0, 0, false);
+        return (_isTouchXInverted ? -x : x, 
+            _isTouchYInverted ? -y : y, isTouching);
     }
 
     public (float x, float y, bool isTouching) GetAbsTouchState()
     {
+        if (_touchReader is null)
+        {
+            return (0, 0, false);
+        }
+
+        var (x, y, isTouching) = _touchReader.GetAbsTouchState();
+        
         if (_isTouchXYSwapped)
         {
-            var (x, y, isTouching) = _touchReader?.GetAbsTouchState() ?? (0, 0, false);
-            return (y, x, isTouching);
+            return (_isTouchXInverted ? -y : y, 
+                _isTouchYInverted ? -x : x, isTouching);
         }
         
-        return _touchReader?.GetAbsTouchState() ?? (0, 0, false);
+        return (_isTouchXInverted ? -x : x, 
+            _isTouchYInverted ? -y : y, isTouching);
     }
     
     public static bool IsTouching()

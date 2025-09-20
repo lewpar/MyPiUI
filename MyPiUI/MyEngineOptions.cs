@@ -6,8 +6,12 @@ namespace MyPiUI;
 public class MyEngineOptions
 {
     public required string FrameBufferDevice { get; init; }
+    
     public string? TouchDevice { get; init; }
     public bool SwapTouchXAndY { get; init; }
+    public bool InvertTouchX { get; init; }
+    public bool InvertTouchY { get; init; }
+    
     public bool ShowMetrics { get; init; }
     public bool ShowDebugUI { get; init; }
     public bool HideConsoleCaret { get; init; }
