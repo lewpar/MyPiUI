@@ -7,6 +7,8 @@ public class InputManager : IDisposable
     private static int _screenWidth;
     private static int _screenHeight;
     
+    private readonly bool _isTouchXYSwapped;
+    
     private TouchReader? _touchReader;
 
     public InputManager(MyEngineOptions options)
@@ -15,6 +17,8 @@ public class InputManager : IDisposable
         {
             _touchReader = new TouchReader(options.TouchDevice);
         }
+
+        _isTouchXYSwapped = options.SwapTouchXAndY;
 
         if (Instance is null)
         {
@@ -33,11 +37,23 @@ public class InputManager : IDisposable
     
     public (float normX, float normY, bool isTouching) GetTouchState()
     {
+        if (_isTouchXYSwapped)
+        {
+            var (x, y, isTouching) = _touchReader?.GetTouchState() ?? (0, 0, false);
+            return (y, x, isTouching);
+        }
+        
         return _touchReader?.GetTouchState() ?? (0, 0, false);
     }
 
     public (float x, float y, bool isTouching) GetAbsTouchState()
     {
+        if (_isTouchXYSwapped)
+        {
+            var (x, y, isTouching) = _touchReader?.GetAbsTouchState() ?? (0, 0, false);
+            return (y, x, isTouching);
+        }
+        
         return _touchReader?.GetAbsTouchState() ?? (0, 0, false);
     }
     

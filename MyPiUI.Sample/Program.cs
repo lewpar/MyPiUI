@@ -15,6 +15,7 @@ class Program
             FrameBufferDevice = "/dev/fb0",
             
             TouchDevice = InputDeviceEnumerator.AutoDetectTouchDevice(),
+            SwapTouchXAndY = true,
             
             HideConsoleCaret = true,
             ShowMetrics = true,
