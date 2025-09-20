@@ -26,7 +26,7 @@ class Program
             BackgroundColor = Color.Black,
             ForegroundColor = Color.White,
             
-            RenderMode = RenderMode.FrameBuffer,
+            RenderMode = RenderMode.Raylib,
             
             RenderWidth = 480,
             RenderHeight = 320,

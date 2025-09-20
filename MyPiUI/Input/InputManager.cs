@@ -42,39 +42,37 @@ public class InputManager : IDisposable
     public (float normX, float normY, bool isTouching) GetTouchState()
     {
         if (_touchReader is null)
-        {
             return (0, 0, false);
-        }
 
         var (x, y, isTouching) = _touchReader.GetTouchState();
-        
+
+        // Swap if needed
         if (_isTouchXYSwapped)
-        {
-            return (_isTouchXInverted ? -y : y, 
-                _isTouchYInverted ? -x : x, isTouching);
-        }
-        
-        return (_isTouchXInverted ? -x : x, 
-            _isTouchYInverted ? -y : y, isTouching);
+            (x, y) = (y, x);
+
+        // Invert if needed (sign flip for deltas/normalized)
+        if (_isTouchXInverted) x = 1.0f - x;
+        if (_isTouchYInverted) y = 1.0f - y;
+
+        return (x, y, isTouching);
     }
 
     public (float x, float y, bool isTouching) GetAbsTouchState()
     {
         if (_touchReader is null)
-        {
             return (0, 0, false);
-        }
 
         var (x, y, isTouching) = _touchReader.GetAbsTouchState();
-        
+
+        // Swap if needed
         if (_isTouchXYSwapped)
-        {
-            return (_isTouchXInverted ? -y : y, 
-                _isTouchYInverted ? -x : x, isTouching);
-        }
-        
-        return (_isTouchXInverted ? -x : x, 
-            _isTouchYInverted ? -y : y, isTouching);
+            (x, y) = (y, x);
+
+        // Invert if needed (normalized 0..1 case)
+        if (_isTouchXInverted) x = 1f - x;
+        if (_isTouchYInverted) y = 1f - y;
+
+        return (x, y, isTouching);
     }
     
     public static bool IsTouching()
