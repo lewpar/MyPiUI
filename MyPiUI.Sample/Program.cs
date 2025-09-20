@@ -15,6 +15,9 @@ class Program
             FrameBufferDevice = "/dev/fb0",
             
             TouchDevice = InputDeviceEnumerator.AutoDetectTouchDevice(),
+            SwapTouchXAndY = true,
+            InvertTouchX = true,
+            InvertTouchY = false,
             
             HideConsoleCaret = true,
             ShowMetrics = true,
@@ -25,8 +28,8 @@ class Program
             
             RenderMode = RenderMode.Raylib,
             
-            RenderWidth = 800,
-            RenderHeight = 480,
+            RenderWidth = 480,
+            RenderHeight = 320,
             
             HotReload = true,
             SkipTouchCalibration = false

@@ -7,6 +7,10 @@ public class InputManager : IDisposable
     private static int _screenWidth;
     private static int _screenHeight;
     
+    private readonly bool _isTouchXYSwapped;
+    private readonly bool _isTouchXInverted;
+    private readonly bool _isTouchYInverted;
+    
     private TouchReader? _touchReader;
 
     public InputManager(MyEngineOptions options)
@@ -15,6 +19,10 @@ public class InputManager : IDisposable
         {
             _touchReader = new TouchReader(options.TouchDevice);
         }
+
+        _isTouchXYSwapped = options.SwapTouchXAndY;
+        _isTouchXInverted = options.InvertTouchX;
+        _isTouchYInverted = options.InvertTouchY;
 
         if (Instance is null)
         {
@@ -33,12 +41,38 @@ public class InputManager : IDisposable
     
     public (float normX, float normY, bool isTouching) GetTouchState()
     {
-        return _touchReader?.GetTouchState() ?? (0, 0, false);
+        if (_touchReader is null)
+            return (0, 0, false);
+
+        var (x, y, isTouching) = _touchReader.GetTouchState();
+
+        // Swap if needed
+        if (_isTouchXYSwapped)
+            (x, y) = (y, x);
+
+        // Invert if needed (sign flip for deltas/normalized)
+        if (_isTouchXInverted) x = 1.0f - x;
+        if (_isTouchYInverted) y = 1.0f - y;
+
+        return (x, y, isTouching);
     }
 
     public (float x, float y, bool isTouching) GetAbsTouchState()
     {
-        return _touchReader?.GetAbsTouchState() ?? (0, 0, false);
+        if (_touchReader is null)
+            return (0, 0, false);
+
+        var (x, y, isTouching) = _touchReader.GetAbsTouchState();
+
+        // Swap if needed
+        if (_isTouchXYSwapped)
+            (x, y) = (y, x);
+
+        // Invert if needed (normalized 0..1 case)
+        if (_isTouchXInverted) x = 1f - x;
+        if (_isTouchYInverted) y = 1f - y;
+
+        return (x, y, isTouching);
     }
     
     public static bool IsTouching()

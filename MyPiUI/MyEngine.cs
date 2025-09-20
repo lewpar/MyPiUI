@@ -130,7 +130,7 @@ public class MyEngine : IDisposable
         }
         
         int x = 15, y = 15, lineHeight = 12;
-        int totalHeight = lineHeight * 8 + lineHeight;
+        int totalHeight = lineHeight * 9 + lineHeight;
         int totalWidth = 8 * 20;
         string fontFamily = "Roboto";
         int fontSize = 12;
@@ -144,7 +144,8 @@ public class MyEngine : IDisposable
         Buffer.DrawText(new Point(x, y), $"Debug UI: {_drawMetrics.DebugUIDrawTime:F2} ms", fontFamily, fontSize, color); y += lineHeight;
         Buffer.DrawText(new Point(x, y), $"Metrics: {_drawMetrics.MetricsTime:F2} ms", fontFamily, fontSize, color); y += lineHeight;
         Buffer.DrawText(new Point(x, y), $"Swap: {_drawMetrics.SwapTime:F2} ms", fontFamily, fontSize, color); y += lineHeight;
-        Buffer.DrawText(new Point(x, y), $"Total: {_drawMetrics.TotalDrawTime:F2} ms", fontFamily, fontSize, color);
+        Buffer.DrawText(new Point(x, y), $"Total: {_drawMetrics.TotalDrawTime:F2} ms", fontFamily, fontSize, color); y += lineHeight;
+        Buffer.DrawText(new Point(x, y), $"Touch X/Y: {_touchCursorPosition.X:F2}, {_touchCursorPosition.Y:F2}", fontFamily, fontSize, color);
     }
     
     private void RenderDebugUI(UIElement element)
