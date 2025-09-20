@@ -28,8 +28,8 @@ class Program
             
             RenderMode = RenderMode.FrameBuffer,
             
-            RenderWidth = 800,
-            RenderHeight = 480,
+            RenderWidth = 480,
+            RenderHeight = 320,
             
             HotReload = true,
             SkipTouchCalibration = false
