@@ -1,3 +1,9 @@
+> [!NOTE]
+> This repository is not currently being worked on.
+> 
+> If you are looking for a way to render a GUI on a Raspberry Pi using the legacy Linux Framebuffer, I suggest looking into [LVGL](https://github.com/lvgl/lv_port_linux).
+> LVGL has a comprehensive list of features such as: Prebuild components, XML UI Editor (LVGL Pro Editor), and compiles to native code thanks to C.
+
 ![Logo](.github/assets/logo.png)
 
 A UI framework for the Raspberry Pi using the Linux Frame Buffer device (`/dev/fb0`) for rendering.
